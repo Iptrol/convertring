@@ -3,6 +3,7 @@ import uuid
 import asyncio
 import tempfile
 import subprocess
+import logging
 from pathlib import Path
 from typing import Optional
 
@@ -12,7 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 import yt_dlp
 
-# ── App ───────────────────────────────────────────────────────────────────────
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="ConvertRing API")
 
 app.add_middleware(
@@ -22,21 +25,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# ── Storage ───────────────────────────────────────────────────────────────────
-JOBS: dict[str, dict] = {}          # job_id → {status, file_path, message}
+JOBS: dict[str, dict] = {}
 OUTPUT_DIR = Path("/tmp/ringcut")
 OUTPUT_DIR.mkdir(exist_ok=True)
 
 MAX_DURATION = 40
 MAX_FILE_MB  = 50
 
-# ── Helpers ───────────────────────────────────────────────────────────────────
-
 def make_job() -> str:
     jid = str(uuid.uuid4())
     JOBS[jid] = {"status": "pending", "file_path": None, "message": ""}
     return jid
-
 
 def run_ffmpeg(args: list) -> tuple[bool, str]:
     result = subprocess.run(
@@ -45,10 +44,10 @@ def run_ffmpeg(args: list) -> tuple[bool, str]:
     )
     return result.returncode == 0, result.stderr
 
-
 def convert_to_m4r(src: str, dst: str, start: int, end: int) -> bool:
     duration = min(end - start, MAX_DURATION)
-    ok, _ = run_ffmpeg([
+    logger.info(f"Converting: {src} → {dst}, start={start}, duration={duration}")
+    ok, stderr = run_ffmpeg([
         "-i", src,
         "-ss", str(start),
         "-t", str(duration),
@@ -57,8 +56,11 @@ def convert_to_m4r(src: str, dst: str, start: int, end: int) -> bool:
         "-b:a", "128k",
         dst
     ])
+    if not ok:
+        logger.error(f"ffmpeg failed: {stderr}")
+    else:
+        logger.info(f"ffmpeg success, file exists: {Path(dst).exists()}")
     return ok
-
 
 async def download_url(url: str, out_dir: str) -> Optional[str]:
     opts = {
@@ -76,25 +78,26 @@ async def download_url(url: str, out_dir: str) -> Optional[str]:
                 if f.stem == base:
                     return str(f)
     except Exception as e:
-        print(f"yt-dlp error: {e}")
+        logger.error(f"yt-dlp error: {e}")
     return None
-
-# ── Background tasks ──────────────────────────────────────────────────────────
 
 async def process_file_job(job_id: str, tmp_path: str, start: int, end: int):
     out = str(OUTPUT_DIR / f"{job_id}.m4r")
     try:
+        logger.info(f"Job {job_id}: converting file {tmp_path}")
         ok = convert_to_m4r(tmp_path, out, start, end)
         if ok and Path(out).exists():
+            logger.info(f"Job {job_id}: done!")
             JOBS[job_id] = {"status": "done", "file_path": out, "message": ""}
         else:
+            logger.error(f"Job {job_id}: failed, file exists: {Path(out).exists()}")
             JOBS[job_id] = {"status": "error", "file_path": None, "message": "Конвертація не вдалася"}
     except Exception as e:
+        logger.error(f"Job {job_id}: exception: {e}")
         JOBS[job_id] = {"status": "error", "file_path": None, "message": str(e)}
     finally:
         try: os.remove(tmp_path)
         except: pass
-
 
 async def process_url_job(job_id: str, url: str, start: int, end: int):
     with tempfile.TemporaryDirectory() as tmp:
@@ -103,7 +106,6 @@ async def process_url_job(job_id: str, url: str, start: int, end: int):
         if not dl:
             JOBS[job_id] = {"status": "error", "file_path": None, "message": "Не вдалося завантажити відео"}
             return
-
         out = str(OUTPUT_DIR / f"{job_id}.m4r")
         JOBS[job_id]["status"] = "converting"
         ok = convert_to_m4r(dl, out, start, end)
@@ -112,12 +114,9 @@ async def process_url_job(job_id: str, url: str, start: int, end: int):
         else:
             JOBS[job_id] = {"status": "error", "file_path": None, "message": "Помилка конвертації"}
 
-# ── Routes ────────────────────────────────────────────────────────────────────
-
 @app.get("/")
 def root():
     return {"service": "ConvertRing API", "status": "ok"}
-
 
 @app.post("/convert/file")
 async def convert_file(
@@ -128,12 +127,10 @@ async def convert_file(
 ):
     if file.size and file.size > MAX_FILE_MB * 1024 * 1024:
         raise HTTPException(400, f"Файл занадто великий (макс {MAX_FILE_MB} МБ)")
-
     if end - start > MAX_DURATION:
         raise HTTPException(400, f"Максимальна тривалість {MAX_DURATION} секунд")
 
     job_id = make_job()
-
     suffix = Path(file.filename).suffix or ".mp4"
     tmp_fd, tmp_path = tempfile.mkstemp(suffix=suffix)
     with os.fdopen(tmp_fd, 'wb') as f:
@@ -144,23 +141,19 @@ async def convert_file(
     background_tasks.add_task(process_file_job, job_id, tmp_path, start, end)
     return {"job_id": job_id}
 
-
 class UrlRequest(BaseModel):
     url: str
     start: int = 0
     end: int = 30
 
-
 @app.post("/convert/url")
 async def convert_url(req: UrlRequest, background_tasks: BackgroundTasks):
     if req.end - req.start > MAX_DURATION:
         raise HTTPException(400, f"Максимальна тривалість {MAX_DURATION} секунд")
-
     job_id = make_job()
     JOBS[job_id]["status"] = "downloading"
     background_tasks.add_task(process_url_job, job_id, req.url, req.start, req.end)
     return {"job_id": job_id}
-
 
 @app.get("/status/{job_id}")
 def get_status(job_id: str):
@@ -169,17 +162,14 @@ def get_status(job_id: str):
         raise HTTPException(404, "Job not found")
     return {"status": job["status"], "message": job.get("message", "")}
 
-
 @app.get("/download/{job_id}")
 def download(job_id: str):
     job = JOBS.get(job_id)
     if not job or job["status"] != "done":
         raise HTTPException(404, "Файл не знайдено або ще не готовий")
-
     path = job["file_path"]
     if not path or not Path(path).exists():
         raise HTTPException(404, "Файл видалено")
-
     return FileResponse(
         path,
         media_type="audio/x-m4r",
