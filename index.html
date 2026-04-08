@@ -6,7 +6,6 @@
 <title>ConvertRing — Конвертер рингтонів</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-
 <style>
   :root {
     --bg: #0a0a0f;
@@ -20,9 +19,7 @@
     --muted: #6b6b8a;
     --radius: 16px;
   }
-
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-
   body {
     font-family: 'DM Sans', sans-serif;
     background: var(--bg);
@@ -31,528 +28,119 @@
     overflow-x: hidden;
     padding-bottom: 40px;
   }
-
-  /* Animated background */
   body::before {
     content: '';
     position: fixed;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
     background: radial-gradient(ellipse at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 50%),
                 radial-gradient(ellipse at 80% 80%, rgba(255,106,154,0.06) 0%, transparent 50%);
     pointer-events: none;
     z-index: 0;
   }
-
-  .wrap {
-    position: relative;
-    z-index: 1;
-    max-width: 480px;
-    margin: 0 auto;
-    padding: 20px 16px;
-  }
-
-  /* Header */
-  .header {
-    text-align: center;
-    padding: 12px 0 28px;
-    animation: fadeDown 0.5s ease both;
-  }
-
-  .logo {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 8px;
-  }
-
+  .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px; }
+  .header { text-align: center; padding: 12px 0 28px; animation: fadeDown 0.5s ease both; }
+  .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px; }
   .logo-icon {
-    width: 42px;
-    height: 42px;
+    width: 42px; height: 42px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 20px;
-    box-shadow: 0 4px 20px rgba(124,106,255,0.4);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center;
+    font-size: 20px; box-shadow: 0 4px 20px rgba(124,106,255,0.4);
   }
-
   .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
+    font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
     background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
   }
-
-  .tagline {
-    font-size: 13px;
-    color: var(--muted);
-    font-weight: 300;
-    letter-spacing: 0.3px;
-  }
-
-  /* Steps indicator */
-  .steps {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0;
-    margin-bottom: 24px;
-    animation: fadeDown 0.5s 0.1s ease both;
-  }
-
-  .step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-  }
-
+  .tagline { font-size: 13px; color: var(--muted); font-weight: 300; letter-spacing: 0.3px; }
+  .steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 24px; animation: fadeDown 0.5s 0.1s ease both; }
+  .step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .step-dot {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    background: var(--card);
-    border: 2px solid var(--border);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--muted);
-    transition: all 0.3s ease;
+    width: 28px; height: 28px; border-radius: 50%; background: var(--card);
+    border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 600; color: var(--muted); transition: all 0.3s ease;
   }
-
   .step.active .step-dot {
     background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-color: transparent;
-    color: white;
-    box-shadow: 0 0 16px rgba(124,106,255,0.5);
+    border-color: transparent; color: white; box-shadow: 0 0 16px rgba(124,106,255,0.5);
   }
-
-  .step.done .step-dot {
-    background: var(--green);
-    border-color: transparent;
-    color: white;
-  }
-
-  .step-label {
-    font-size: 10px;
-    color: var(--muted);
-    white-space: nowrap;
-  }
-
+  .step.done .step-dot { background: var(--green); border-color: transparent; color: white; }
+  .step-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
   .step.active .step-label { color: var(--accent); }
   .step.done .step-label { color: var(--green); }
-
-  .step-line {
-    flex: 1;
-    height: 2px;
-    background: var(--border);
-    max-width: 40px;
-    margin: 0 4px;
-    margin-bottom: 20px;
-    transition: background 0.3s;
-  }
-
+  .step-line { flex: 1; height: 2px; background: var(--border); max-width: 40px; margin: 0 4px; margin-bottom: 20px; transition: background 0.3s; }
   .step-line.done { background: var(--green); }
-
-  /* Card */
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-    animation: fadeUp 0.4s ease both;
-  }
-
-  .card-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    margin-bottom: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  /* Input */
-  .input-group {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 12px;
-  }
-
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeUp 0.4s ease both; }
+  .card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
   .url-input {
-    flex: 1;
-    background: var(--surface);
-    border: 1.5px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 14px;
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-size: 14px;
-    outline: none;
-    transition: border-color 0.2s;
+    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
+    border-radius: 12px; padding: 12px 14px; color: var(--text);
+    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s;
   }
-
   .url-input::placeholder { color: var(--muted); }
   .url-input:focus { border-color: var(--accent); }
-
-  /* Upload area */
   .upload-area {
-    border: 2px dashed var(--border);
-    border-radius: 12px;
-    padding: 24px 16px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    position: relative;
-    overflow: hidden;
+    border: 2px dashed var(--border); border-radius: 12px; padding: 24px 16px;
+    text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;
   }
-
-  .upload-area:hover, .upload-area.drag {
-    border-color: var(--accent);
-    background: rgba(124,106,255,0.05);
-  }
-
-  .upload-area input {
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    cursor: pointer;
-    width: 100%;
-    height: 100%;
-  }
-
+  .upload-area:hover, .upload-area.drag { border-color: var(--accent); background: rgba(124,106,255,0.05); }
+  .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .upload-icon { font-size: 32px; margin-bottom: 8px; }
-
-  .upload-text {
-    font-size: 14px;
-    color: var(--muted);
-    line-height: 1.4;
-  }
-
+  .upload-text { font-size: 14px; color: var(--muted); line-height: 1.4; }
   .upload-text strong { color: var(--text); }
-
-  /* Trim slider */
   .trim-section { margin-top: 4px; }
-
-  .trim-label {
-    display: flex;
-    justify-content: space-between;
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 10px;
-  }
-
-  .trim-label span { color: var(--accent); font-weight: 600; }
-
-  /* Range track */
-  .range-wrap {
-    position: relative;
-    height: 36px;
-    display: flex;
-    align-items: center;
-    margin-bottom: 4px;
-  }
-
-  .range-track {
-    position: absolute;
-    left: 0; right: 0;
-    height: 4px;
-    border-radius: 4px;
-    background: var(--border);
-  }
-
-  .range-fill {
-    position: absolute;
-    height: 4px;
-    border-radius: 4px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    pointer-events: none;
-  }
-
-  input[type=range] {
-    -webkit-appearance: none;
-    position: absolute;
-    width: 100%;
-    height: 4px;
-    background: transparent;
-    outline: none;
-    pointer-events: none;
-  }
-
+  .range-wrap { position: relative; height: 36px; display: flex; align-items: center; margin-bottom: 4px; }
+  .range-track { position: absolute; left: 0; right: 0; height: 4px; border-radius: 4px; background: var(--border); }
+  .range-fill { position: absolute; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); pointer-events: none; }
+  input[type=range] { -webkit-appearance: none; position: absolute; width: 100%; height: 4px; background: transparent; outline: none; pointer-events: none; }
   input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 22px;
-    height: 22px;
-    border-radius: 50%;
-    background: white;
-    box-shadow: 0 2px 10px rgba(124,106,255,0.6);
-    cursor: pointer;
-    pointer-events: all;
-    border: 2px solid var(--accent);
+    -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
+    background: white; box-shadow: 0 2px 10px rgba(124,106,255,0.6);
+    cursor: pointer; pointer-events: all; border: 2px solid var(--accent);
   }
-
-  .time-badges {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 10px;
-  }
-
-  .time-badge {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 5px 12px;
-    font-size: 13px;
-    font-weight: 600;
-    color: var(--text);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
+  .time-badges { display: flex; justify-content: space-between; margin-top: 10px; }
+  .time-badge { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
   .time-badge .lbl { font-size: 10px; color: var(--muted); font-weight: 400; }
   .time-badge .val { color: var(--accent); font-family: 'Syne', sans-serif; }
-
-  .duration-chip {
-    text-align: center;
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 8px;
-  }
-
+  .duration-chip { text-align: center; font-size: 12px; color: var(--muted); margin-top: 8px; }
   .duration-chip b { color: var(--accent2); }
-
-  /* Buttons */
-  .btn {
-    width: 100%;
-    padding: 15px;
-    border-radius: 14px;
-    border: none;
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    letter-spacing: 0.2px;
-  }
-
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    box-shadow: 0 4px 20px rgba(124,106,255,0.3);
-  }
-
+  .btn { width: 100%; padding: 15px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; letter-spacing: 0.2px; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 20px rgba(124,106,255,0.3); }
   .btn-primary:active { transform: scale(0.98); box-shadow: none; }
   .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .btn-green {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
-  }
-
-  .btn-outline {
-    background: transparent;
-    border: 1.5px solid var(--border);
-    color: var(--text);
-  }
-
-  /* Progress */
-  .progress-wrap {
-    margin: 16px 0;
-  }
-
-  .progress-bar-bg {
-    height: 6px;
-    background: var(--surface);
-    border-radius: 6px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 6px;
-    transition: width 0.4s ease;
-    width: 0%;
-  }
-
-  .progress-text {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-  }
-
-  /* Ad countdown */
-  .ad-box {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 20px;
-    text-align: center;
-    margin-bottom: 16px;
-  }
-
-  .ad-timer {
-    font-family: 'Syne', sans-serif;
-    font-size: 48px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1;
-    margin: 12px 0;
-  }
-
-  .ad-label {
-    font-size: 13px;
-    color: var(--muted);
-  }
-
-  .ad-iframe-wrap {
-    background: #000;
-    border-radius: 12px;
-    overflow: hidden;
-    margin: 14px 0;
-    min-height: 120px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted);
-    font-size: 13px;
-    border: 1px solid var(--border);
-  }
-
-  /* Success */
-  .success-icon {
-    font-size: 56px;
-    text-align: center;
-    margin: 8px 0 4px;
-    animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both;
-  }
-
-  .success-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 20px;
-    font-weight: 800;
-    text-align: center;
-    margin-bottom: 4px;
-  }
-
-  .success-sub {
-    font-size: 13px;
-    color: var(--muted);
-    text-align: center;
-    margin-bottom: 20px;
-  }
-
-  /* How-to steps */
-  .howto {
-    background: var(--surface);
-    border-radius: 12px;
-    padding: 14px;
-    margin-bottom: 16px;
-  }
-
-  .howto-title {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    margin-bottom: 10px;
-  }
-
-  .howto-step {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 6px 0;
-    font-size: 13px;
-    color: var(--text);
-    border-bottom: 1px solid var(--border);
-  }
-
+  .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 4px 20px rgba(34,197,94,0.3); }
+  .btn-outline { background: transparent; border: 1.5px solid var(--border); color: var(--text); }
+  .progress-wrap { margin: 16px 0; }
+  .progress-bar-bg { height: 6px; background: var(--surface); border-radius: 6px; overflow: hidden; margin-bottom: 8px; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 6px; transition: width 0.4s ease; width: 0%; }
+  .progress-text { font-size: 13px; color: var(--muted); text-align: center; }
+  .ad-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; text-align: center; margin-bottom: 16px; }
+  .ad-timer { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 800; background: linear-gradient(135deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; line-height: 1; margin: 12px 0; }
+  .ad-label { font-size: 13px; color: var(--muted); }
+  .ad-iframe-wrap { background: #000; border-radius: 12px; overflow: hidden; margin: 14px 0; min-height: 120px; display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 13px; border: 1px solid var(--border); }
+  .success-icon { font-size: 56px; text-align: center; margin: 8px 0 4px; animation: pop 0.4s cubic-bezier(0.34,1.56,0.64,1) both; }
+  .success-title { font-family: 'Syne', sans-serif; font-size: 20px; font-weight: 800; text-align: center; margin-bottom: 4px; }
+  .success-sub { font-size: 13px; color: var(--muted); text-align: center; margin-bottom: 20px; }
+  .howto { background: var(--surface); border-radius: 12px; padding: 14px; margin-bottom: 16px; }
+  .howto-title { font-size: 12px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 10px; }
+  .howto-step { display: flex; align-items: flex-start; gap: 10px; padding: 6px 0; font-size: 13px; color: var(--text); border-bottom: 1px solid var(--border); }
   .howto-step:last-child { border-bottom: none; }
-
-  .howto-num {
-    min-width: 20px;
-    height: 20px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 6px;
-    font-size: 10px;
-    font-weight: 700;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: white;
-    margin-top: 1px;
-  }
-
-  /* Toast */
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%) translateY(80px);
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 12px 20px;
-    font-size: 14px;
-    white-space: nowrap;
-    z-index: 100;
-    transition: transform 0.3s ease;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-  }
-
+  .howto-num { min-width: 20px; height: 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 6px; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; color: white; margin-top: 1px; }
+  .toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px 20px; font-size: 14px; white-space: nowrap; z-index: 100; transition: transform 0.3s ease; box-shadow: 0 8px 32px rgba(0,0,0,0.4); }
   .toast.show { transform: translateX(-50%) translateY(0); }
   .toast.error { border-color: #ff4d4d; color: #ff4d4d; }
   .toast.success { border-color: var(--green); color: var(--green); }
-
-  /* Hidden */
   .hidden { display: none !important; }
-
-  /* Animations */
-  @keyframes fadeDown {
-    from { opacity: 0; transform: translateY(-16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  @keyframes pop {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
-  }
-
+  @keyframes fadeDown { from { opacity: 0; transform: translateY(-16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes pop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
   .pulsing { animation: pulse 1.5s ease infinite; }
 </style>
 </head>
 <body>
 <div class="wrap">
-
-  <!-- Header -->
   <div class="header">
     <div class="logo">
       <div class="logo-icon">✂️</div>
@@ -560,8 +148,6 @@
     </div>
     <div class="tagline" id="tagline">Конвертер відео у рингтони для iPhone · безкоштовно</div>
   </div>
-
-  <!-- Steps -->
   <div class="steps" id="stepsBar">
     <div class="step active" id="step1el">
       <div class="step-dot">1</div>
@@ -578,20 +164,14 @@
       <div class="step-label" id="step3label">Скачати</div>
     </div>
   </div>
-
-  <!-- SCREEN 1: Input -->
   <div id="screen1">
-
     <div class="card" style="animation-delay:0.1s">
       <div class="card-title" id="urlLabel">📎 Посилання на відео</div>
-
       <div class="input-group">
-        <input class="url-input" id="urlInput" type="url"
-          placeholder="YouTube, TikTok, Instagram…" autocomplete="off" />
+        <input class="url-input" id="urlInput" type="url" placeholder="YouTube, TikTok, Instagram…" autocomplete="off" />
       </div>
-
       <div class="upload-area" id="uploadArea">
-        <input type="file" id="fileInput" accept="video/*,audio/*" />
+        <input type="file" id="fileInput" />
         <div class="upload-icon">📁</div>
         <div class="upload-text">
           <strong id="uploadStrong">Натисни або перетягни файл</strong><br>
@@ -599,11 +179,9 @@
         </div>
       </div>
     </div>
-
     <div class="card" style="animation-delay:0.2s">
       <div class="card-title" id="trimLabel">✂️ Вирізати фрагмент</div>
       <div class="trim-section">
-
         <div class="time-badges">
           <div class="time-badge">
             <span class="lbl" id="startLbl">▶ Початок</span>
@@ -614,29 +192,20 @@
             <span class="val" id="endVal">0:30</span>
           </div>
         </div>
-
         <div class="range-wrap" style="margin-top:16px">
           <div class="range-track"></div>
           <div class="range-fill" id="rangeFill"></div>
           <input type="range" id="startSlider" min="0" max="590" value="0" oninput="updateRange()">
-          <input type="range" id="endSlider"   min="0" max="590" value="30" oninput="updateRange()">
+          <input type="range" id="endSlider" min="0" max="590" value="30" oninput="updateRange()">
         </div>
-
         <div class="duration-chip">
           <b id="durChip">30 сек</b> · <span id="durHint">макс. 40 сек для iPhone</span>
         </div>
       </div>
     </div>
-
-    <button class="btn btn-primary" id="convertBtn" onclick="startConvert()">
-      Конвертувати →
-    </button>
-
+    <button class="btn btn-primary" id="convertBtn" onclick="startConvert()">Конвертувати →</button>
   </div>
-
-  <!-- SCREEN 2: Converting + Ad -->
   <div id="screen2" class="hidden">
-
     <div class="card">
       <div class="card-title pulsing" id="convertStatus">⚙️ Конвертую файл…</div>
       <div class="progress-wrap">
@@ -646,37 +215,23 @@
         <div class="progress-text" id="progressText">Підготовка…</div>
       </div>
     </div>
-
-    <!-- Ad block -->
     <div class="ad-box hidden" id="adBox">
       <div class="ad-label" id="adLabel">📣 Перегляньте рекламу щоб скачати файл</div>
       <div class="ad-timer" id="adTimer">15</div>
       <div class="ad-label" id="adUnit">секунд</div>
-
       <div class="ad-iframe-wrap" id="adContainer">
         <span id="adLoading">Завантаження реклами…</span>
       </div>
-
-      <button class="btn btn-primary" id="adDoneBtn" disabled onclick="adFinished()">
-        Зачекайте…
-      </button>
+      <button class="btn btn-primary" id="adDoneBtn" disabled onclick="adFinished()">Зачекайте…</button>
     </div>
-
   </div>
-
-  <!-- SCREEN 3: Download -->
   <div id="screen3" class="hidden">
-
     <div class="card" style="animation-delay:0s">
       <div class="success-icon">🎉</div>
       <div class="success-title" id="successTitle">Готово!</div>
       <div class="success-sub" id="successSub">Твій рингтон сконвертовано</div>
-
-      <button class="btn btn-green" id="downloadBtn" onclick="downloadFile()">
-        ⬇️ Скачати .m4r файл
-      </button>
+      <button class="btn btn-green" id="downloadBtn" onclick="downloadFile()">⬇️ Скачати .m4r файл</button>
     </div>
-
     <div class="howto">
       <div class="howto-title" id="howtoTitle">Як встановити на iPhone</div>
       <div class="howto-step"><div class="howto-num">1</div><div class="howto-step-text">Скачай файл .m4r на комп'ютер</div></div>
@@ -685,475 +240,200 @@
       <div class="howto-step"><div class="howto-num">4</div><div class="howto-step-text">PC: iTunes → Тони → перетягни → синхронізуй</div></div>
       <div class="howto-step"><div class="howto-num">5</div><div class="howto-step-text">Налаштування → Звуки → Рингтон ✅</div></div>
     </div>
-
-    <button class="btn btn-outline" id="againBtn" onclick="resetApp()" style="margin-top:4px">
-      ← Конвертувати ще
-    </button>
-
+    <button class="btn btn-outline" id="againBtn" onclick="resetApp()" style="margin-top:4px">← Конвертувати ще</button>
   </div>
-
 </div>
-
-<!-- Toast -->
 <div class="toast" id="toast"></div>
-
 <script>
-// ── Config ──────────────────────────────────────────────
 const API_BASE = 'https://convertring-production.up.railway.app';
-const AD_SECONDS = 15; // скільки секунд дивитись рекламу
-
-// Monetag zone ID — вставити свій після реєстрації
+const AD_SECONDS = 15;
 const MONETAG_ZONE = 'YOUR_MONETAG_ZONE_ID';
 
-// ── Telegram WebApp init ─────────────────────────────────
 const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  tg.setHeaderColor('#0a0a0f');
-  tg.setBackgroundColor('#0a0a0f');
-}
+if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0a0f'); tg.setBackgroundColor('#0a0a0f'); }
 
-// ── i18n ─────────────────────────────────────────────────
 const LANG_TEXTS = {
   uk: {
-    tagline:      "Конвертер відео у рингтони для iPhone · безкоштовно",
-    urlLabel:     "📎 Посилання на відео",
-    urlPlaceholder: "YouTube, TikTok, Instagram…",
-    uploadStrong: "Натисни або перетягни файл",
-    uploadSub:    "MP4, MOV, AVI, MKV, MP3…",
-    trimLabel:    "✂️ Вирізати фрагмент",
-    start:        "▶ Початок",
-    end:          "⏹ Кінець",
-    durSuffix:    "сек",
-    durHint:      "макс. 40 сек для iPhone",
-    convertBtn:   "Конвертувати →",
-    step1:        "Відео",
-    step2:        "Реклама",
-    step3:        "Скачати",
-    converting:   "⚙️ Конвертую файл…",
-    adLabel:      "📣 Перегляньте рекламу щоб скачати файл",
-    adUnit:       "секунд",
-    adLoading:    "Завантаження реклами…",
-    adWait:       "Зачекайте…",
-    adDone:       "Скачати файл →",
-    ready:        "✅ Файл готовий!",
-    successTitle: "Готово!",
-    successSub:   "Твій рингтон сконвертовано",
-    downloadBtn:  "⬇️ Скачати .m4r файл",
-    howtoTitle:   "Як встановити на iPhone",
-    howto:        ["Скачай файл .m4r на комп'ютер","Підключи iPhone кабелем","Mac: Finder → iPhone → Рингтони → перетягни файл","PC: iTunes → Тони → перетягни → синхронізуй","Налаштування → Звуки → Рингтон ✅"],
-    again:        "← Конвертувати ще",
-    toastFile:    "Файл обрано ✓",
-    toastNoInput: "Вкажи посилання або завантаж файл",
-    toastError:   "Сервер повернув помилку",
-    toastDownload:"Файл скачується ✓",
-    prog1: "Відправляю запит…", prog2: "Завантаження файлу…", prog3: "Знаходжу відео…",
-    poll1: "Завантажую аудіо…", poll2: "Конвертую формат…", poll3: "Обрізаю трек…",
-    poll4: "Майже готово…", pollDone: "Конвертація завершена!",
-    errServer: "Сервер повернув помилку", errNoJob: "Немає job_id від сервера",
-    errDownload: "Не вдалося завантажити відео", errConvert: "Не вдалося конвертувати файл.",
+    tagline: "Конвертер відео у рингтони для iPhone · безкоштовно", urlLabel: "📎 Посилання на відео",
+    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Натисни або перетягни файл",
+    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вирізати фрагмент",
+    start: "▶ Початок", end: "⏹ Кінець", durSuffix: "сек", durHint: "макс. 40 сек для iPhone",
+    convertBtn: "Конвертувати →", step1: "Відео", step2: "Реклама", step3: "Скачати",
+    adLabel: "📣 Перегляньте рекламу щоб скачати файл", adUnit: "секунд",
+    adWait: "Зачекайте…", successTitle: "Готово!", successSub: "Твій рингтон сконвертовано",
+    downloadBtn: "⬇️ Скачати .m4r файл", howtoTitle: "Як встановити на iPhone",
+    howto: ["Скачай файл .m4r на комп'ютер","Підключи iPhone кабелем","Mac: Finder → iPhone → Рингтони → перетягни файл","PC: iTunes → Тони → перетягни → синхронізуй","Налаштування → Звуки → Рингтон ✅"],
+    again: "← Конвертувати ще",
   },
   ru: {
-    tagline:      "Конвертер видео в рингтоны для iPhone · бесплатно",
-    urlLabel:     "📎 Ссылка на видео",
-    urlPlaceholder: "YouTube, TikTok, Instagram…",
-    uploadStrong: "Нажми или перетащи файл",
-    uploadSub:    "MP4, MOV, AVI, MKV, MP3…",
-    trimLabel:    "✂️ Вырезать фрагмент",
-    start:        "▶ Начало",
-    end:          "⏹ Конец",
-    durSuffix:    "сек",
-    durHint:      "макс. 40 сек для iPhone",
-    convertBtn:   "Конвертировать →",
-    step1:        "Видео",
-    step2:        "Реклама",
-    step3:        "Скачать",
-    converting:   "⚙️ Конвертирую файл…",
-    adLabel:      "📣 Посмотрите рекламу чтобы скачать файл",
-    adUnit:       "секунд",
-    adLoading:    "Загрузка рекламы…",
-    adWait:       "Подождите…",
-    adDone:       "Скачать файл →",
-    ready:        "✅ Файл готов!",
-    successTitle: "Готово!",
-    successSub:   "Твой рингтон сконвертирован",
-    downloadBtn:  "⬇️ Скачать .m4r файл",
-    howtoTitle:   "Как установить на iPhone",
-    howto:        ["Скачай файл .m4r на компьютер","Подключи iPhone кабелем","Mac: Finder → iPhone → Рингтоны → перетащи файл","PC: iTunes → Мелодии → перетащи → синхронизируй","Настройки → Звуки → Рингтон ✅"],
-    again:        "← Конвертировать ещё",
-    toastFile:    "Файл выбран ✓",
-    toastNoInput: "Укажи ссылку или загрузи файл",
-    toastError:   "Сервер вернул ошибку",
-    toastDownload:"Файл скачивается ✓",
-    prog1: "Отправляю запрос…", prog2: "Загрузка файла…", prog3: "Ищу видео…",
-    poll1: "Загружаю аудио…", poll2: "Конвертирую формат…", poll3: "Обрезаю трек…",
-    poll4: "Почти готово…", pollDone: "Конвертация завершена!",
-    errServer: "Сервер вернул ошибку", errNoJob: "Нет job_id от сервера",
-    errDownload: "Не удалось скачать видео", errConvert: "Не удалось конвертировать файл.",
+    tagline: "Конвертер видео в рингтоны для iPhone · бесплатно", urlLabel: "📎 Ссылка на видео",
+    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Нажми или перетащи файл",
+    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вырезать фрагмент",
+    start: "▶ Начало", end: "⏹ Конец", durSuffix: "сек", durHint: "макс. 40 сек для iPhone",
+    convertBtn: "Конвертировать →", step1: "Видео", step2: "Реклама", step3: "Скачать",
+    adLabel: "📣 Посмотрите рекламу чтобы скачать файл", adUnit: "секунд",
+    adWait: "Подождите…", successTitle: "Готово!", successSub: "Твой рингтон сконвертирован",
+    downloadBtn: "⬇️ Скачать .m4r файл", howtoTitle: "Как установить на iPhone",
+    howto: ["Скачай файл .m4r на компьютер","Подключи iPhone кабелем","Mac: Finder → iPhone → Рингтоны → перетащи файл","PC: iTunes → Мелодии → перетащи → синхронизируй","Настройки → Звуки → Рингтон ✅"],
+    again: "← Конвертировать ещё",
   },
   en: {
-    tagline:      "Video to iPhone ringtone converter · free",
-    urlLabel:     "📎 Video link",
-    urlPlaceholder: "YouTube, TikTok, Instagram…",
-    uploadStrong: "Tap or drag a file",
-    uploadSub:    "MP4, MOV, AVI, MKV, MP3…",
-    trimLabel:    "✂️ Trim clip",
-    start:        "▶ Start",
-    end:          "⏹ End",
-    durSuffix:    "sec",
-    durHint:      "max 40 sec for iPhone",
-    convertBtn:   "Convert →",
-    step1:        "Video",
-    step2:        "Ad",
-    step3:        "Download",
-    converting:   "⚙️ Converting…",
-    adLabel:      "📣 Watch an ad to download your file",
-    adUnit:       "seconds",
-    adLoading:    "Loading ad…",
-    adWait:       "Please wait…",
-    adDone:       "Download file →",
-    ready:        "✅ File is ready!",
-    successTitle: "Done!",
-    successSub:   "Your ringtone has been converted",
-    downloadBtn:  "⬇️ Download .m4r file",
-    howtoTitle:   "How to install on iPhone",
-    howto:        ["Download the .m4r file to your computer","Connect iPhone via cable","Mac: Finder → iPhone → Tones → drag the file","PC: iTunes → Tones → drag → sync","Settings → Sounds → Ringtone ✅"],
-    again:        "← Convert another",
-    toastFile:    "File selected ✓",
-    toastNoInput: "Enter a link or upload a file",
-    toastError:   "Server returned an error",
-    toastDownload:"Downloading file ✓",
-    prog1: "Sending request…", prog2: "Uploading file…", prog3: "Finding video…",
-    poll1: "Downloading audio…", poll2: "Converting format…", poll3: "Trimming track…",
-    poll4: "Almost done…", pollDone: "Conversion complete!",
-    errServer: "Server returned an error", errNoJob: "No job_id from server",
-    errDownload: "Could not download video", errConvert: "Could not convert file.",
+    tagline: "Video to iPhone ringtone converter · free", urlLabel: "📎 Video link",
+    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Tap or drag a file",
+    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Trim clip",
+    start: "▶ Start", end: "⏹ End", durSuffix: "sec", durHint: "max 40 sec for iPhone",
+    convertBtn: "Convert →", step1: "Video", step2: "Ad", step3: "Download",
+    adLabel: "📣 Watch an ad to download your file", adUnit: "seconds",
+    adWait: "Please wait…", successTitle: "Done!", successSub: "Your ringtone has been converted",
+    downloadBtn: "⬇️ Download .m4r file", howtoTitle: "How to install on iPhone",
+    howto: ["Download the .m4r file to your computer","Connect iPhone via cable","Mac: Finder → iPhone → Tones → drag the file","PC: iTunes → Tones → drag → sync","Settings → Sounds → Ringtone ✅"],
+    again: "← Convert another",
   }
 };
 
-// Читаємо мову з URL ?lang=uk/ru/en, дефолт — uk
 const urlLang = new URLSearchParams(location.search).get('lang');
 let LANG = ['uk','ru','en'].includes(urlLang) ? urlLang : 'uk';
 let T = LANG_TEXTS[LANG];
 
 function applyLang() {
   T = LANG_TEXTS[LANG];
-  $('tagline').textContent        = T.tagline;
-  $('urlLabel').textContent       = T.urlLabel;
-  $('urlInput').placeholder       = T.urlPlaceholder;
-  $('uploadStrong').textContent   = T.uploadStrong;
-  $('uploadSub').textContent      = T.uploadSub;
-  $('trimLabel').textContent      = T.trimLabel;
-  $('startLbl').textContent       = T.start;
-  $('endLbl').textContent         = T.end;
-  $('durHint').textContent        = T.durHint;
-  $('convertBtn').textContent     = T.convertBtn;
-  $('step1label').textContent     = T.step1;
-  $('step2label').textContent     = T.step2;
-  $('step3label').textContent     = T.step3;
-  $('adLabel').textContent        = T.adLabel;
-  $('adUnit').textContent         = T.adUnit;
-  $('adDoneBtn').textContent      = T.adWait;
-  $('successTitle').textContent   = T.successTitle;
-  $('successSub').textContent     = T.successSub;
-  $('downloadBtn').textContent    = T.downloadBtn;
-  $('howtoTitle').textContent     = T.howtoTitle;
-  $('againBtn').textContent       = T.again;
-  // howto steps
-  document.querySelectorAll('.howto-step-text').forEach((el, i) => {
-    el.textContent = T.howto[i] || '';
-  });
-  // dur chip suffix
+  $('tagline').textContent = T.tagline; $('urlLabel').textContent = T.urlLabel;
+  $('urlInput').placeholder = T.urlPlaceholder; $('uploadStrong').textContent = T.uploadStrong;
+  $('uploadSub').textContent = T.uploadSub; $('trimLabel').textContent = T.trimLabel;
+  $('startLbl').textContent = T.start; $('endLbl').textContent = T.end;
+  $('durHint').textContent = T.durHint; $('convertBtn').textContent = T.convertBtn;
+  $('step1label').textContent = T.step1; $('step2label').textContent = T.step2;
+  $('step3label').textContent = T.step3; $('adLabel').textContent = T.adLabel;
+  $('adUnit').textContent = T.adUnit; $('adDoneBtn').textContent = T.adWait;
+  $('successTitle').textContent = T.successTitle; $('successSub').textContent = T.successSub;
+  $('downloadBtn').textContent = T.downloadBtn; $('howtoTitle').textContent = T.howtoTitle;
+  $('againBtn').textContent = T.again;
+  document.querySelectorAll('.howto-step-text').forEach((el, i) => { el.textContent = T.howto[i] || ''; });
   const dur = parseInt($('endSlider').value) - parseInt($('startSlider').value);
   $('durChip').textContent = dur + ' ' + T.durSuffix;
 }
-
 document.addEventListener('DOMContentLoaded', applyLang);
 
-// ── State ────────────────────────────────────────────────
-let selectedFile = null;
-let downloadUrl  = null;
-let adInterval   = null;
-let adLeft       = AD_SECONDS;
-let jobId        = null;
+let selectedFile = null, downloadUrl = null, adInterval = null, adLeft = AD_SECONDS, jobId = null;
 
-// ── UI helpers ───────────────────────────────────────────
-function show(id)  { document.getElementById(id).classList.remove('hidden'); }
-function hide(id)  { document.getElementById(id).classList.add('hidden'); }
-function $(id)     { return document.getElementById(id); }
+function show(id) { document.getElementById(id).classList.remove('hidden'); }
+function hide(id) { document.getElementById(id).classList.add('hidden'); }
+function $(id) { return document.getElementById(id); }
 
 function toast(msg, type = '') {
-  const t = $('toast');
-  t.textContent = msg;
-  t.className = 'toast show ' + type;
+  const t = $('toast'); t.textContent = msg; t.className = 'toast show ' + type;
   setTimeout(() => t.className = 'toast', 2800);
 }
 
 function setStep(n) {
   for (let i = 1; i <= 3; i++) {
-    const el = $('step' + i + 'el');
-    el.className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
-    if (i < 3) {
-      $('line' + i).className = 'step-line' + (i < n ? ' done' : '');
-    }
+    $('step' + i + 'el').className = 'step' + (i < n ? ' done' : i === n ? ' active' : '');
+    if (i < 3) $('line' + i).className = 'step-line' + (i < n ? ' done' : '');
   }
 }
 
-function fmtTime(s) {
-  s = Math.round(s);
-  return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0');
-}
+function fmtTime(s) { s = Math.round(s); return Math.floor(s/60) + ':' + String(s%60).padStart(2,'0'); }
+function setProgress(pct, text) { $('progressBar').style.width = pct + '%'; $('progressText').textContent = text; }
 
-function setProgress(pct, text) {
-  $('progressBar').style.width = pct + '%';
-  $('progressText').textContent = text;
-}
-
-// ── Range slider ─────────────────────────────────────────
 function updateRange() {
   const maxSec = parseInt($('startSlider').max);
-  let s = parseInt($('startSlider').value);
-  let e = parseInt($('endSlider').value);
+  let s = parseInt($('startSlider').value), e = parseInt($('endSlider').value);
   const MIN_DUR = 5, MAX_DUR = 40;
-
   if (e <= s + MIN_DUR - 1) {
-    if (document.activeElement === $('startSlider')) {
-      s = Math.max(0, e - MIN_DUR);
-      $('startSlider').value = s;
-    } else {
-      e = Math.min(maxSec, s + MIN_DUR);
-      $('endSlider').value = e;
-    }
+    if (document.activeElement === $('startSlider')) { s = Math.max(0, e - MIN_DUR); $('startSlider').value = s; }
+    else { e = Math.min(maxSec, s + MIN_DUR); $('endSlider').value = e; }
   }
   if (e - s > MAX_DUR) {
-    if (document.activeElement === $('startSlider')) {
-      s = e - MAX_DUR;
-      $('startSlider').value = s;
-    } else {
-      e = s + MAX_DUR;
-      $('endSlider').value = e;
-    }
+    if (document.activeElement === $('startSlider')) { s = e - MAX_DUR; $('startSlider').value = s; }
+    else { e = s + MAX_DUR; $('endSlider').value = e; }
   }
-
-  $('startVal').textContent = fmtTime(s);
-  $('endVal').textContent   = fmtTime(e);
-  $('durChip').textContent  = (e - s) + ' сек';
-
-  const pS = s / maxSec * 100;
-  const pE = e / maxSec * 100;
-  $('rangeFill').style.left  = pS + '%';
-  $('rangeFill').style.width = (pE - pS) + '%';
+  $('startVal').textContent = fmtTime(s); $('endVal').textContent = fmtTime(e);
+  $('durChip').textContent = (e - s) + ' сек';
+  const pS = s / maxSec * 100, pE = e / maxSec * 100;
+  $('rangeFill').style.left = pS + '%'; $('rangeFill').style.width = (pE - pS) + '%';
 }
 
 function setSliderMax(seconds) {
   const max = Math.max(seconds, 40);
-  $('startSlider').max = max;
-  $('endSlider').max   = max;
-  $('startSlider').value = 0;
-  $('endSlider').value   = Math.min(30, seconds);
+  $('startSlider').max = max; $('endSlider').max = max;
+  $('startSlider').value = 0; $('endSlider').value = Math.min(30, seconds);
   updateRange();
 }
-
 updateRange();
 
-// ── File selection ───────────────────────────────────────
 $('fileInput').addEventListener('change', e => {
   selectedFile = e.target.files[0];
   if (selectedFile) {
-    $('uploadArea').querySelector('.upload-text').innerHTML =
-      `<strong>${selectedFile.name}</strong><br>${(selectedFile.size/1024/1024).toFixed(1)} МБ`;
+    $('uploadArea').querySelector('.upload-text').innerHTML = `<strong>${selectedFile.name}</strong><br>${(selectedFile.size/1024/1024).toFixed(1)} МБ`;
     $('urlInput').value = '';
-    // Try to read duration from video element
     const url = URL.createObjectURL(selectedFile);
     const vid = document.createElement('video');
     vid.src = url;
-    vid.onloadedmetadata = () => {
-      if (vid.duration && isFinite(vid.duration)) {
-        setSliderMax(Math.floor(vid.duration));
-      }
-      URL.revokeObjectURL(url);
-    };
+    vid.onloadedmetadata = () => { if (vid.duration && isFinite(vid.duration)) setSliderMax(Math.floor(vid.duration)); URL.revokeObjectURL(url); };
     toast('Файл обрано ✓', 'success');
   }
 });
 
-// ── Convert ──────────────────────────────────────────────
 async function startConvert() {
-  const url   = $('urlInput').value.trim();
-  const start = parseInt($('startSlider').value);
-  const end   = parseInt($('endSlider').value);
-
-  if (!url && !selectedFile) {
-    toast('Вкажи посилання або завантаж файл', 'error');
-    return;
-  }
-
-  hide('screen1');
-  show('screen2');
-  setStep(2);
-  setProgress(5, 'Відправляю запит…');
-
+  const url = $('urlInput').value.trim();
+  const start = parseInt($('startSlider').value), end = parseInt($('endSlider').value);
+  if (!url && !selectedFile) { toast('Вкажи посилання або завантаж файл', 'error'); return; }
+  hide('screen1'); show('screen2'); setStep(2); setProgress(5, 'Відправляю запит…');
   try {
     let resp;
-
     if (selectedFile) {
       const fd = new FormData();
-      fd.append('file', selectedFile);
-      fd.append('start', start);
-      fd.append('end', end);
+      fd.append('file', selectedFile); fd.append('start', start); fd.append('end', end);
       setProgress(20, 'Завантаження файлу…');
       resp = await fetch(`${API_BASE}/convert/file`, { method: 'POST', body: fd });
     } else {
       setProgress(20, 'Знаходжу відео…');
-      resp = await fetch(`${API_BASE}/convert/url`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url, start, end })
-      });
+      resp = await fetch(`${API_BASE}/convert/url`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, start, end }) });
     }
-
     if (!resp.ok) throw new Error('Сервер повернув помилку');
     const data = await resp.json();
-
     if (!data.job_id) throw new Error('Немає job_id від сервера');
     jobId = data.job_id;
-
-    // Poll status
     await pollStatus(jobId);
-
-  } catch (e) {
-    toast('❌ ' + e.message, 'error');
-    resetApp();
-  }
+  } catch (e) { toast('❌ ' + e.message, 'error'); resetApp(); }
 }
 
 async function pollStatus(id) {
-  const steps = [
-    [30, 'Завантажую аудіо…'],
-    [55, 'Конвертую формат…'],
-    [80, 'Обрізаю трек…'],
-    [95, 'Майже готово…'],
-  ];
+  const steps = [[30,'Завантажую аудіо…'],[55,'Конвертую формат…'],[80,'Обрізаю трек…'],[95,'Майже готово…']];
   let si = 0;
-
   return new Promise((resolve, reject) => {
     const interval = setInterval(async () => {
       try {
-        if (si < steps.length) {
-          setProgress(...steps[si++]);
-        }
-
+        if (si < steps.length) setProgress(...steps[si++]);
         const r = await fetch(`${API_BASE}/status/${id}`);
         const d = await r.json();
-
         if (d.status === 'done') {
           clearInterval(interval);
           setProgress(100, 'Конвертація завершена!');
           downloadUrl = `${API_BASE}/download/${id}`;
           setTimeout(() => adFinished(), 600);
           resolve();
-        } else if (d.status === 'error') {
-          clearInterval(interval);
-          reject(new Error(d.message || 'Помилка конвертації'));
-        }
-      } catch(e) {
-        clearInterval(interval);
-        reject(e);
-      }
+        } else if (d.status === 'error') { clearInterval(interval); reject(new Error(d.message || 'Помилка конвертації')); }
+      } catch(e) { clearInterval(interval); reject(e); }
     }, 2000);
   });
 }
 
-// ── Ad ───────────────────────────────────────────────────
-function showAd() {
-  $('convertStatus').textContent = '✅ Файл готовий!';
-  $('convertStatus').classList.remove('pulsing');
-  show('adBox');
+function adFinished() { clearInterval(adInterval); hide('screen2'); show('screen3'); setStep(3); }
 
-  // Load Monetag ad
-  loadMonetagAd();
-
-  // Countdown
-  adLeft = AD_SECONDS;
-  $('adTimer').textContent = adLeft;
-  adInterval = setInterval(() => {
-    adLeft--;
-    $('adTimer').textContent = adLeft;
-    if (adLeft <= 0) {
-      clearInterval(adInterval);
-      $('adDoneBtn').disabled = false;
-      $('adDoneBtn').textContent = 'Скачати файл →';
-    }
-  }, 1000);
-}
-
-function loadMonetagAd() {
-  // Monetag in-page push / interstitial
-  // Замінити MONETAG_ZONE на свій zone ID з кабінету Monetag
-  const container = $('adContainer');
-  container.innerHTML = '';
-
-  // Метод 1: iframe з Monetag
-  // const iframe = document.createElement('iframe');
-  // iframe.src = `https://ad.monetag.com/...`;
-  // container.appendChild(iframe);
-
-  // Метод 2: script tag (рекомендований Monetag)
-  const script = document.createElement('script');
-  script.setAttribute('data-cfasync', 'false');
-  script.src = `//ophoacit.com/1?z=${MONETAG_ZONE}`;
-  script.async = true;
-  container.appendChild(script);
-
-  // Fallback текст якщо реклама не завантажилась
-  setTimeout(() => {
-    if (container.children.length <= 1) {
-      container.innerHTML = '<div style="padding:20px;color:var(--muted);font-size:13px">📣 Реклама завантажується…</div>';
-    }
-  }, 3000);
-}
-
-function adFinished() {
-  clearInterval(adInterval);
-  hide('screen2');
-  show('screen3');
-  setStep(3);
-}
-
-// ── Download ─────────────────────────────────────────────
 function downloadFile() {
   if (!downloadUrl) return;
-  const a = document.createElement('a');
-  a.href = downloadUrl;
-  a.download = 'ringtone.m4r';
-  a.click();
+  const a = document.createElement('a'); a.href = downloadUrl; a.download = 'ringtone.m4r'; a.click();
   toast('Файл скачується ✓', 'success');
-
-  // Notify Telegram bot if needed
   if (tg) tg.sendData(JSON.stringify({ action: 'downloaded', job: jobId }));
 }
 
-// ── Reset ────────────────────────────────────────────────
 function resetApp() {
-  selectedFile = null;
-  downloadUrl  = null;
-  jobId        = null;
-  clearInterval(adInterval);
-
-  $('urlInput').value = '';
-  $('fileInput').value = '';
-  $('uploadArea').querySelector('.upload-text').innerHTML =
-    '<strong>Натисни або перетягни файл</strong><br>MP4, MOV, AVI, MKV, MP3…';
-
-  hide('screen2');
-  hide('screen3');
-  show('screen1');
-  setStep(1);
-  setProgress(0, '');
-  $('adDoneBtn').disabled = true;
-  $('adDoneBtn').textContent = 'Зачекайте…';
-  hide('adBox');
+  selectedFile = null; downloadUrl = null; jobId = null; clearInterval(adInterval);
+  $('urlInput').value = ''; $('fileInput').value = '';
+  $('uploadArea').querySelector('.upload-text').innerHTML = '<strong>Натисни або перетягни файл</strong><br>MP4, MOV, AVI, MKV, MP3…';
+  hide('screen2'); hide('screen3'); show('screen1'); setStep(1); setProgress(0, '');
+  $('adDoneBtn').disabled = true; $('adDoneBtn').textContent = 'Зачекайте…'; hide('adBox');
 }
 </script>
 </body>
