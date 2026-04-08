@@ -1051,7 +1051,7 @@ async function pollStatus(id) {
           clearInterval(interval);
           setProgress(100, 'Конвертація завершена!');
           downloadUrl = `${API_BASE}/download/${id}`;
-          setTimeout(() => showAd(), 600);
+          setTimeout(() => adFinished(), 600);
           resolve();
         } else if (d.status === 'error') {
           clearInterval(interval);
