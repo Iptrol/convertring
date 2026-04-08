@@ -8,62 +8,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --card: #1a1a24;
-    --border: #2a2a3a;
-    --accent: #7c6aff;
-    --accent2: #ff6a9a;
-    --green: #4ade80;
-    --text: #f0f0ff;
-    --muted: #6b6b8a;
-    --radius: 16px;
+    --bg: #0a0a0f; --surface: #13131a; --card: #1a1a24; --border: #2a2a3a;
+    --accent: #7c6aff; --accent2: #ff6a9a; --green: #4ade80; --text: #f0f0ff;
+    --muted: #6b6b8a; --radius: 16px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    overflow-x: hidden;
-    padding-bottom: 40px;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: radial-gradient(ellipse at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(255,106,154,0.06) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
+  body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; overflow-x: hidden; padding-bottom: 40px; }
+  body::before { content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%; background: radial-gradient(ellipse at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 50%), radial-gradient(ellipse at 80% 80%, rgba(255,106,154,0.06) 0%, transparent 50%); pointer-events: none; z-index: 0; }
   .wrap { position: relative; z-index: 1; max-width: 480px; margin: 0 auto; padding: 20px 16px; }
   .header { text-align: center; padding: 12px 0 28px; animation: fadeDown 0.5s ease both; }
   .logo { display: inline-flex; align-items: center; gap: 10px; margin-bottom: 8px; }
-  .logo-icon {
-    width: 42px; height: 42px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 12px; display: flex; align-items: center; justify-content: center;
-    font-size: 20px; box-shadow: 0 4px 20px rgba(124,106,255,0.4);
-  }
-  .logo-text {
-    font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  }
+  .logo-icon { width: 42px; height: 42px; background: linear-gradient(135deg, var(--accent), var(--accent2)); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 20px rgba(124,106,255,0.4); }
+  .logo-text { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 800; letter-spacing: -0.5px; background: linear-gradient(90deg, var(--accent), var(--accent2)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
   .tagline { font-size: 13px; color: var(--muted); font-weight: 300; letter-spacing: 0.3px; }
   .steps { display: flex; align-items: center; justify-content: center; gap: 0; margin-bottom: 24px; animation: fadeDown 0.5s 0.1s ease both; }
   .step { display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .step-dot {
-    width: 28px; height: 28px; border-radius: 50%; background: var(--card);
-    border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
-    font-size: 11px; font-weight: 600; color: var(--muted); transition: all 0.3s ease;
-  }
-  .step.active .step-dot {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-color: transparent; color: white; box-shadow: 0 0 16px rgba(124,106,255,0.5);
-  }
+  .step-dot { width: 28px; height: 28px; border-radius: 50%; background: var(--card); border: 2px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; color: var(--muted); transition: all 0.3s ease; }
+  .step.active .step-dot { background: linear-gradient(135deg, var(--accent), var(--accent2)); border-color: transparent; color: white; box-shadow: 0 0 16px rgba(124,106,255,0.5); }
   .step.done .step-dot { background: var(--green); border-color: transparent; color: white; }
   .step-label { font-size: 10px; color: var(--muted); white-space: nowrap; }
   .step.active .step-label { color: var(--accent); }
@@ -73,17 +34,10 @@
   .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; animation: fadeUp 0.4s ease both; }
   .card-title { font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 700; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
   .input-group { display: flex; gap: 8px; margin-bottom: 12px; }
-  .url-input {
-    flex: 1; background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 12px; padding: 12px 14px; color: var(--text);
-    font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s;
-  }
+  .url-input { flex: 1; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 12px 14px; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
   .url-input::placeholder { color: var(--muted); }
   .url-input:focus { border-color: var(--accent); }
-  .upload-area {
-    border: 2px dashed var(--border); border-radius: 12px; padding: 24px 16px;
-    text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden;
-  }
+  .upload-area { border: 2px dashed var(--border); border-radius: 12px; padding: 24px 16px; text-align: center; cursor: pointer; transition: all 0.2s ease; position: relative; overflow: hidden; }
   .upload-area:hover, .upload-area.drag { border-color: var(--accent); background: rgba(124,106,255,0.05); }
   .upload-area input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
   .upload-icon { font-size: 32px; margin-bottom: 8px; }
@@ -94,11 +48,7 @@
   .range-track { position: absolute; left: 0; right: 0; height: 4px; border-radius: 4px; background: var(--border); }
   .range-fill { position: absolute; height: 4px; border-radius: 4px; background: linear-gradient(90deg, var(--accent), var(--accent2)); pointer-events: none; }
   input[type=range] { -webkit-appearance: none; position: absolute; width: 100%; height: 4px; background: transparent; outline: none; pointer-events: none; }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%;
-    background: white; box-shadow: 0 2px 10px rgba(124,106,255,0.6);
-    cursor: pointer; pointer-events: all; border: 2px solid var(--accent);
-  }
+  input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; border-radius: 50%; background: white; box-shadow: 0 2px 10px rgba(124,106,255,0.6); cursor: pointer; pointer-events: all; border: 2px solid var(--accent); }
   .time-badges { display: flex; justify-content: space-between; margin-top: 10px; }
   .time-badge { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 5px 12px; font-size: 13px; font-weight: 600; color: var(--text); display: flex; align-items: center; gap: 6px; }
   .time-badge .lbl { font-size: 10px; color: var(--muted); font-weight: 400; }
@@ -149,20 +99,11 @@
     <div class="tagline" id="tagline">Конвертер відео у рингтони для iPhone · безкоштовно</div>
   </div>
   <div class="steps" id="stepsBar">
-    <div class="step active" id="step1el">
-      <div class="step-dot">1</div>
-      <div class="step-label" id="step1label">Відео</div>
-    </div>
+    <div class="step active" id="step1el"><div class="step-dot">1</div><div class="step-label" id="step1label">Відео</div></div>
     <div class="step-line" id="line1"></div>
-    <div class="step" id="step2el">
-      <div class="step-dot">2</div>
-      <div class="step-label" id="step2label">Реклама</div>
-    </div>
+    <div class="step" id="step2el"><div class="step-dot">2</div><div class="step-label" id="step2label">Реклама</div></div>
     <div class="step-line" id="line2"></div>
-    <div class="step" id="step3el">
-      <div class="step-dot">3</div>
-      <div class="step-label" id="step3label">Скачати</div>
-    </div>
+    <div class="step" id="step3el"><div class="step-dot">3</div><div class="step-label" id="step3label">Скачати</div></div>
   </div>
   <div id="screen1">
     <div class="card" style="animation-delay:0.1s">
@@ -183,14 +124,8 @@
       <div class="card-title" id="trimLabel">✂️ Вирізати фрагмент</div>
       <div class="trim-section">
         <div class="time-badges">
-          <div class="time-badge">
-            <span class="lbl" id="startLbl">▶ Початок</span>
-            <span class="val" id="startVal">0:00</span>
-          </div>
-          <div class="time-badge">
-            <span class="lbl" id="endLbl">⏹ Кінець</span>
-            <span class="val" id="endVal">0:30</span>
-          </div>
+          <div class="time-badge"><span class="lbl" id="startLbl">▶ Початок</span><span class="val" id="startVal">0:00</span></div>
+          <div class="time-badge"><span class="lbl" id="endLbl">⏹ Кінець</span><span class="val" id="endVal">0:30</span></div>
         </div>
         <div class="range-wrap" style="margin-top:16px">
           <div class="range-track"></div>
@@ -198,9 +133,7 @@
           <input type="range" id="startSlider" min="0" max="590" value="0" oninput="updateRange()">
           <input type="range" id="endSlider" min="0" max="590" value="30" oninput="updateRange()">
         </div>
-        <div class="duration-chip">
-          <b id="durChip">30 сек</b> · <span id="durHint">макс. 40 сек для iPhone</span>
-        </div>
+        <div class="duration-chip"><b id="durChip">30 сек</b> · <span id="durHint">макс. 40 сек для iPhone</span></div>
       </div>
     </div>
     <button class="btn btn-primary" id="convertBtn" onclick="startConvert()">Конвертувати →</button>
@@ -209,9 +142,7 @@
     <div class="card">
       <div class="card-title pulsing" id="convertStatus">⚙️ Конвертую файл…</div>
       <div class="progress-wrap">
-        <div class="progress-bar-bg">
-          <div class="progress-bar-fill" id="progressBar"></div>
-        </div>
+        <div class="progress-bar-bg"><div class="progress-bar-fill" id="progressBar"></div></div>
         <div class="progress-text" id="progressText">Підготовка…</div>
       </div>
     </div>
@@ -219,9 +150,7 @@
       <div class="ad-label" id="adLabel">📣 Перегляньте рекламу щоб скачати файл</div>
       <div class="ad-timer" id="adTimer">15</div>
       <div class="ad-label" id="adUnit">секунд</div>
-      <div class="ad-iframe-wrap" id="adContainer">
-        <span id="adLoading">Завантаження реклами…</span>
-      </div>
+      <div class="ad-iframe-wrap" id="adContainer"><span id="adLoading">Завантаження реклами…</span></div>
       <button class="btn btn-primary" id="adDoneBtn" disabled onclick="adFinished()">Зачекайте…</button>
     </div>
   </div>
@@ -253,42 +182,9 @@ const tg = window.Telegram?.WebApp;
 if (tg) { tg.ready(); tg.expand(); tg.setHeaderColor('#0a0a0f'); tg.setBackgroundColor('#0a0a0f'); }
 
 const LANG_TEXTS = {
-  uk: {
-    tagline: "Конвертер відео у рингтони для iPhone · безкоштовно", urlLabel: "📎 Посилання на відео",
-    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Натисни або перетягни файл",
-    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вирізати фрагмент",
-    start: "▶ Початок", end: "⏹ Кінець", durSuffix: "сек", durHint: "макс. 40 сек для iPhone",
-    convertBtn: "Конвертувати →", step1: "Відео", step2: "Реклама", step3: "Скачати",
-    adLabel: "📣 Перегляньте рекламу щоб скачати файл", adUnit: "секунд",
-    adWait: "Зачекайте…", successTitle: "Готово!", successSub: "Твій рингтон сконвертовано",
-    downloadBtn: "⬇️ Скачати .m4r файл", howtoTitle: "Як встановити на iPhone",
-    howto: ["Скачай файл .m4r на комп'ютер","Підключи iPhone кабелем","Mac: Finder → iPhone → Рингтони → перетягни файл","PC: iTunes → Тони → перетягни → синхронізуй","Налаштування → Звуки → Рингтон ✅"],
-    again: "← Конвертувати ще",
-  },
-  ru: {
-    tagline: "Конвертер видео в рингтоны для iPhone · бесплатно", urlLabel: "📎 Ссылка на видео",
-    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Нажми или перетащи файл",
-    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вырезать фрагмент",
-    start: "▶ Начало", end: "⏹ Конец", durSuffix: "сек", durHint: "макс. 40 сек для iPhone",
-    convertBtn: "Конвертировать →", step1: "Видео", step2: "Реклама", step3: "Скачать",
-    adLabel: "📣 Посмотрите рекламу чтобы скачать файл", adUnit: "секунд",
-    adWait: "Подождите…", successTitle: "Готово!", successSub: "Твой рингтон сконвертирован",
-    downloadBtn: "⬇️ Скачать .m4r файл", howtoTitle: "Как установить на iPhone",
-    howto: ["Скачай файл .m4r на компьютер","Подключи iPhone кабелем","Mac: Finder → iPhone → Рингтоны → перетащи файл","PC: iTunes → Мелодии → перетащи → синхронизируй","Настройки → Звуки → Рингтон ✅"],
-    again: "← Конвертировать ещё",
-  },
-  en: {
-    tagline: "Video to iPhone ringtone converter · free", urlLabel: "📎 Video link",
-    urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Tap or drag a file",
-    uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Trim clip",
-    start: "▶ Start", end: "⏹ End", durSuffix: "sec", durHint: "max 40 sec for iPhone",
-    convertBtn: "Convert →", step1: "Video", step2: "Ad", step3: "Download",
-    adLabel: "📣 Watch an ad to download your file", adUnit: "seconds",
-    adWait: "Please wait…", successTitle: "Done!", successSub: "Your ringtone has been converted",
-    downloadBtn: "⬇️ Download .m4r file", howtoTitle: "How to install on iPhone",
-    howto: ["Download the .m4r file to your computer","Connect iPhone via cable","Mac: Finder → iPhone → Tones → drag the file","PC: iTunes → Tones → drag → sync","Settings → Sounds → Ringtone ✅"],
-    again: "← Convert another",
-  }
+  uk: { tagline: "Конвертер відео у рингтони для iPhone · безкоштовно", urlLabel: "📎 Посилання на відео", urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Натисни або перетягни файл", uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вирізати фрагмент", start: "▶ Початок", end: "⏹ Кінець", durSuffix: "сек", durHint: "макс. 40 сек для iPhone", convertBtn: "Конвертувати →", step1: "Відео", step2: "Реклама", step3: "Скачати", adLabel: "📣 Перегляньте рекламу щоб скачати файл", adUnit: "секунд", adWait: "Зачекайте…", successTitle: "Готово!", successSub: "Твій рингтон сконвертовано", downloadBtn: "⬇️ Скачати .m4r файл", howtoTitle: "Як встановити на iPhone", howto: ["Скачай файл .m4r на комп'ютер","Підключи iPhone кабелем","Mac: Finder → iPhone → Рингтони → перетягни файл","PC: iTunes → Тони → перетягни → синхронізуй","Налаштування → Звуки → Рингтон ✅"], again: "← Конвертувати ще" },
+  ru: { tagline: "Конвертер видео в рингтоны для iPhone · бесплатно", urlLabel: "📎 Ссылка на видео", urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Нажми или перетащи файл", uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Вырезать фрагмент", start: "▶ Начало", end: "⏹ Конец", durSuffix: "сек", durHint: "макс. 40 сек для iPhone", convertBtn: "Конвертировать →", step1: "Видео", step2: "Реклама", step3: "Скачать", adLabel: "📣 Посмотрите рекламу чтобы скачать файл", adUnit: "секунд", adWait: "Подождите…", successTitle: "Готово!", successSub: "Твой рингтон сконвертирован", downloadBtn: "⬇️ Скачать .m4r файл", howtoTitle: "Как установить на iPhone", howto: ["Скачай файл .m4r на компьютер","Подключи iPhone кабелем","Mac: Finder → iPhone → Рингтоны → перетащи файл","PC: iTunes → Мелодии → перетащи → синхронизируй","Настройки → Звуки → Рингтон ✅"], again: "← Конвертировать ещё" },
+  en: { tagline: "Video to iPhone ringtone converter · free", urlLabel: "📎 Video link", urlPlaceholder: "YouTube, TikTok, Instagram…", uploadStrong: "Tap or drag a file", uploadSub: "MP4, MOV, AVI, MKV, MP3…", trimLabel: "✂️ Trim clip", start: "▶ Start", end: "⏹ End", durSuffix: "sec", durHint: "max 40 sec for iPhone", convertBtn: "Convert →", step1: "Video", step2: "Ad", step3: "Download", adLabel: "📣 Watch an ad to download your file", adUnit: "seconds", adWait: "Please wait…", successTitle: "Done!", successSub: "Your ringtone has been converted", downloadBtn: "⬇️ Download .m4r file", howtoTitle: "How to install on iPhone", howto: ["Download the .m4r file to your computer","Connect iPhone via cable","Mac: Finder → iPhone → Tones → drag the file","PC: iTunes → Tones → drag → sync","Settings → Sounds → Ringtone ✅"], again: "← Convert another" }
 };
 
 const urlLang = new URLSearchParams(location.search).get('lang');
@@ -385,7 +281,14 @@ async function startConvert() {
       const fd = new FormData();
       fd.append('file', selectedFile); fd.append('start', start); fd.append('end', end);
       setProgress(20, 'Завантаження файлу…');
-      resp = await fetch(`${API_BASE}/convert/file`, { method: 'POST', body: fd });
+      resp = await new Promise((resolve, reject) => {
+        const xhr = new XMLHttpRequest();
+        xhr.open('POST', `${API_BASE}/convert/file`);
+        xhr.onload = () => resolve({ ok: xhr.status < 400, json: () => Promise.resolve(JSON.parse(xhr.responseText)) });
+        xhr.onerror = () => reject(new Error('Помилка завантаження'));
+        xhr.upload.onprogress = (e) => { if (e.lengthComputable) setProgress(20 + Math.round(e.loaded/e.total*60), 'Завантаження файлу…'); };
+        xhr.send(fd);
+      });
     } else {
       setProgress(20, 'Знаходжу відео…');
       resp = await fetch(`${API_BASE}/convert/url`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ url, start, end }) });
