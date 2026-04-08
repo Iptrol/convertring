@@ -21,7 +21,6 @@ API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.ap
 TEXTS = {
     "uk": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nЩо можна надіслати:\n📹 Відео файл\n🔗 Посилання на YouTube / TikTok / Instagram\n🎤 Голосове повідомлення\n\nЯ конвертую і надішлю рингтон! 🎵",
-        "open_btn": "✂️ Відкрити ConvertRing",
         "converting": "⏳ Отримую та конвертую...",
         "done": "✅ Готово! Натисни кнопку щоб отримати рингтон 👇",
         "get_btn": "🎵 Отримати рингтон",
@@ -32,7 +31,6 @@ TEXTS = {
     },
     "ru": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / TikTok / Instagram\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
-        "open_btn": "✂️ Открыть ConvertRing",
         "converting": "⏳ Загружаю и конвертирую...",
         "done": "✅ Готово! Нажми кнопку чтобы получить рингтон 👇",
         "get_btn": "🎵 Получить рингтон",
@@ -43,7 +41,6 @@ TEXTS = {
     },
     "en": {
         "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / TikTok / Instagram link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
-        "open_btn": "✂️ Open ConvertRing",
         "converting": "⏳ Downloading and converting...",
         "done": "✅ Done! Tap the button to get your ringtone 👇",
         "get_btn": "🎵 Get ringtone",
@@ -75,8 +72,6 @@ def app_keyboard(lang: str, job_id: str):
 
 def main_keyboard(lang: str):
     return InlineKeyboardMarkup([[
-        InlineKeyboardButton(TEXTS[lang]["open_btn"], web_app=WebAppInfo(url=f"{WEBAPP_URL}?lang={lang}"))
-    ], [
         InlineKeyboardButton("🌐 Змінити мову / Change language", callback_data="change_lang")
     ]])
 
@@ -198,7 +193,6 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
 
 async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Отримуємо дані з міні-апп після перегляду реклами"""
     try:
         data = json.loads(update.message.web_app_data.data)
         if data.get("action") == "send_file":
