@@ -1,4 +1,5 @@
 import os
+import time
 import logging
 import asyncio
 import httpx
@@ -59,7 +60,8 @@ def lang_keyboard():
     ]])
 
 def app_keyboard(lang: str, job_id: str):
-    url = f"{WEBAPP_URL}?lang={lang}&job_id={job_id}"
+    v = int(time.time())
+    url = f"{WEBAPP_URL}?lang={lang}&job_id={job_id}&v={v}"
     return InlineKeyboardMarkup([[
         InlineKeyboardButton(TEXTS[lang]["get_btn"], web_app=WebAppInfo(url=url))
     ]])
