@@ -54,6 +54,7 @@ def convert_to_m4r(src: str, dst: str, start: int, end: int) -> bool:
         "-vn",
         "-acodec", "aac",
         "-b:a", "128k",
+        "-f", "ipod",
         dst
     ])
     if not ok:
