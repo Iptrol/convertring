@@ -3,6 +3,7 @@ import time
 import logging
 import asyncio
 import httpx
+import json
 
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
 from telegram.ext import (
@@ -26,6 +27,8 @@ TEXTS = {
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
         "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
+        "sending": "📤 Надсилаю рингтон...",
+        "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
     },
     "ru": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / TikTok / Instagram\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
@@ -35,6 +38,8 @@ TEXTS = {
         "get_btn": "🎵 Получить рингтон",
         "error": "❌ Не удалось обработать. Попробуй другое видео или ссылку.",
         "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
+        "sending": "📤 Отправляю рингтон...",
+        "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
     },
     "en": {
         "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / TikTok / Instagram link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
@@ -44,6 +49,8 @@ TEXTS = {
         "get_btn": "🎵 Get ringtone",
         "error": "❌ Failed to process. Try another video or link.",
         "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
+        "sending": "📤 Sending ringtone...",
+        "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
     },
 }
 
@@ -90,6 +97,21 @@ async def poll_job(job_id: str, timeout: int = 120) -> bool:
                 pass
             await asyncio.sleep(3)
     return False
+
+async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str):
+    t = TEXTS[lang]
+    try:
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.get(f"{API_BASE}/download/{job_id}")
+            if r.status_code == 200:
+                await ctx.bot.send_document(
+                    chat_id=chat_id,
+                    document=r.content,
+                    filename="ringtone.m4r",
+                    caption=t["ringtone_caption"]
+                )
+    except Exception as e:
+        logger.error(f"send_ringtone error: {e}")
 
 async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: str, suffix: str):
     lang = get_lang(update.effective_user.id)
@@ -175,6 +197,21 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             reply_markup=lang_keyboard()
         )
 
+async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Отримуємо дані з міні-апп після перегляду реклами"""
+    try:
+        data = json.loads(update.message.web_app_data.data)
+        if data.get("action") == "send_file":
+            job_id = data.get("job_id")
+            user_id = update.effective_user.id
+            lang = get_lang(user_id)
+            t = TEXTS[lang]
+            msg = await update.message.reply_text(t["sending"])
+            await send_ringtone(ctx, update.effective_chat.id, job_id, lang)
+            await msg.delete()
+    except Exception as e:
+        logger.error(f"web_app_data error: {e}")
+
 async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     file = update.message.video or update.message.document
     if not file:
@@ -191,6 +228,8 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await process_file(update, ctx, voice.file_id, ".ogg")
 
 async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    if update.message.web_app_data:
+        return
     text = (update.message.text or "").strip()
     lang = get_lang(update.effective_user.id)
     if is_url(text):
@@ -202,6 +241,7 @@ def main():
     app = Application.builder().token(BOT_TOKEN).build()
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CallbackQueryHandler(on_callback))
+    app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_web_app_data))
     app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video))
     app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, on_voice))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
