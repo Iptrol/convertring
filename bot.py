@@ -5,7 +5,7 @@ from telegram.ext import (
 )
 
 BOT_TOKEN  = os.getenv("BOT_TOKEN", "YOUR_TOKEN")
-WEBAPP_URL = os.getenv("WEBAPP_URL", "https://YOUR_FRONTEND_URL")
+WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projects-6797bf46.vercel.app")
 
 # ── Тексти для кожної мови ────────────────────────────────
 TEXTS = {
