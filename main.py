@@ -65,7 +65,40 @@ def convert_to_m4r(src: str, dst: str, start: int, end: int) -> bool:
         logger.info(f"ffmpeg success, file exists: {Path(dst).exists()}")
     return ok
 
+def is_spotify_url(url: str) -> bool:
+    return "open.spotify.com" in url.lower()
+
+async def download_spotify(url: str, out_dir: str) -> Optional[str]:
+    """Завантажує трек зі Spotify через spotdl (шукає на YouTube)"""
+    try:
+        result = subprocess.run(
+            [
+                "spotdl", "download", url,
+                "--output", out_dir,
+                "--format", "mp3",
+                "--bitrate", "128k",
+            ],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode != 0:
+            logger.error(f"spotdl error: {result.stderr}")
+            return None
+
+        # Знаходимо завантажений файл
+        files = list(Path(out_dir).glob("*.mp3"))
+        if files:
+            return str(files[0])
+        logger.error("spotdl: no file found after download")
+        return None
+    except subprocess.TimeoutExpired:
+        logger.error("spotdl: timeout")
+        return None
+    except Exception as e:
+        logger.error(f"spotdl exception: {e}")
+        return None
+
 async def download_url(url: str, out_dir: str) -> Optional[str]:
+    """Завантажує відео/аудіо через yt-dlp"""
     opts = {
         "format": "bestaudio/best",
         "outtmpl": os.path.join(out_dir, "%(id)s.%(ext)s"),
@@ -93,7 +126,7 @@ async def process_file_job(job_id: str, tmp_path: str, start: int, end: int):
             logger.info(f"Job {job_id}: done!")
             JOBS[job_id] = {"status": "done", "file_path": out, "message": ""}
         else:
-            logger.error(f"Job {job_id}: failed, file exists: {Path(out).exists()}")
+            logger.error(f"Job {job_id}: failed")
             JOBS[job_id] = {"status": "error", "file_path": None, "message": "Конвертація не вдалася"}
     except Exception as e:
         logger.error(f"Job {job_id}: exception: {e}")
@@ -105,10 +138,19 @@ async def process_file_job(job_id: str, tmp_path: str, start: int, end: int):
 async def process_url_job(job_id: str, url: str, start: int, end: int):
     with tempfile.TemporaryDirectory() as tmp:
         JOBS[job_id]["status"] = "downloading"
-        dl = await download_url(url, tmp)
+
+        # Вибираємо завантажувач залежно від джерела
+        if is_spotify_url(url):
+            logger.info(f"Job {job_id}: downloading from Spotify via spotdl")
+            dl = await download_spotify(url, tmp)
+        else:
+            logger.info(f"Job {job_id}: downloading via yt-dlp")
+            dl = await download_url(url, tmp)
+
         if not dl:
             JOBS[job_id] = {"status": "error", "file_path": None, "message": "Не вдалося завантажити відео"}
             return
+
         out = str(OUTPUT_DIR / f"{job_id}.m4r")
         JOBS[job_id]["status"] = "converting"
         ok = convert_to_m4r(dl, out, start, end)
