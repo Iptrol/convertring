@@ -179,24 +179,20 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
 
-async def do_convert_and_send(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Фінальний крок — конвертація після збору всієї інфи"""
-    lang = get_lang(update.effective_user.id)
+async def do_convert(bot, chat_id: int, lang: str, user_data: dict):
+    """Конвертує і надсилає рингтон. Повертає True якщо успішно."""
     t = TEXTS[lang]
-
-    start       = ctx.user_data.get("start", 0)
+    start       = user_data.get("start", 0)
     end         = start + 40
-    file_id     = ctx.user_data.get("file_id")
-    suffix      = ctx.user_data.get("suffix", ".mp4")
-    url         = ctx.user_data.get("url")
-    source      = ctx.user_data.get("source", "file")
-    custom_name = ctx.user_data.get("custom_name")
-    ctx.user_data.clear()
+    file_id     = user_data.get("file_id")
+    suffix      = user_data.get("suffix", ".mp4")
+    url         = user_data.get("url")
+    source      = user_data.get("source", "file")
+    custom_name = user_data.get("custom_name")
 
-    msg = await update.message.reply_text(t["converting"])
     try:
         if file_id:
-            tg_file = await ctx.bot.get_file(file_id)
+            tg_file = await bot.get_file(file_id)
             file_bytes = await tg_file.download_as_bytearray()
             async with httpx.AsyncClient(timeout=120) as client:
                 resp = await client.post(
@@ -213,27 +209,35 @@ async def do_convert_and_send(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
                 )
                 data = resp.json()
         else:
-            await msg.edit_text(t["error"])
-            return
+            return False, None
 
         job_id = data.get("job_id")
         if not job_id:
-            await msg.edit_text(t["error"])
-            return
+            return False, None
 
         ok = await poll_job(job_id)
-        if ok:
-            await msg.edit_text(t["done"])
-            ctx.user_data[f"source_{job_id}"] = source
-            ctx.user_data[f"name_{job_id}"] = custom_name
-            await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
-        else:
-            await msg.edit_text(t["error"])
-    except Exception as e:
-        logger.error(f"do_convert_and_send error: {e}")
-        await msg.edit_text(t["error"])
+        if not ok:
+            return False, None
 
-# ── Крок 1: отримали момент → зберегли → питаємо назву ────────────────────
+        # Завантажуємо і надсилаємо файл
+        filename = make_filename(source, job_id, custom_name)
+        async with httpx.AsyncClient(timeout=30) as client:
+            r = await client.get(f"{API_BASE}/download/{job_id}")
+            if r.status_code == 200:
+                await bot.send_document(
+                    chat_id=chat_id,
+                    document=r.content,
+                    filename=filename,
+                    caption=t["ringtone_caption"],
+                    reply_markup=ReplyKeyboardRemove()
+                )
+                return True, job_id
+        return False, None
+    except Exception as e:
+        logger.error(f"do_convert error: {e}")
+        return False, None
+
+# ── Крок 1: момент ────────────────────────────────────────────────────────
 async def got_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
@@ -248,14 +252,49 @@ async def got_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(t["ask_name"], reply_markup=name_keyboard(lang))
     return ASK_NAME
 
-# ── Крок 2а: юзер натиснув "Дати назву" → питаємо текст ──────────────────
-# (обробляється в on_callback)
+# ── Крок 2: name_skip (всередині ConversationHandler) ─────────────────────
+async def cb_name_skip(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(q.from_user.id)
+    t = TEXTS[lang]
 
-# ── Крок 2б: юзер ввів назву вручну ──────────────────────────────────────
+    ctx.user_data["custom_name"] = None
+    await q.edit_message_text(t["converting"])
+
+    ok, _ = await do_convert(ctx.bot, q.message.chat_id, lang, ctx.user_data)
+    if ok:
+        await q.edit_message_text(t["done"])
+    else:
+        await q.edit_message_text(t["error"])
+
+    ctx.user_data.clear()
+    return ConversationHandler.END
+
+# ── Крок 2: name_give (всередині ConversationHandler) ─────────────────────
+async def cb_name_give(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(q.from_user.id)
+    t = TEXTS[lang]
+    await q.edit_message_text(t["write_name"])
+    return WAIT_NAME_INPUT
+
+# ── Крок 3: юзер ввів назву ──────────────────────────────────────────────
 async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id)
+    t = TEXTS[lang]
     custom_name = (update.message.text or "").strip()
     ctx.user_data["custom_name"] = custom_name
-    await do_convert_and_send(update, ctx)
+
+    msg = await update.message.reply_text(t["converting"])
+    ok, _ = await do_convert(ctx.bot, update.effective_chat.id, lang, ctx.user_data)
+    if ok:
+        await msg.edit_text(t["done"])
+    else:
+        await msg.edit_text(t["error"])
+
+    ctx.user_data.clear()
     return ConversationHandler.END
 
 # ── URL entry ──────────────────────────────────────────────────────────────
@@ -290,78 +329,18 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         )
     return ConversationHandler.END
 
+# ── Глобальні callbacks (мова) ─────────────────────────────────────────────
 async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     user_id = q.from_user.id
-    lang = get_lang(user_id)
-    t = TEXTS[lang]
-
-    if q.data == "name_skip":
-        # Пропускаємо назву → конвертуємо одразу
-        ctx.user_data["custom_name"] = None
-        await q.edit_message_text(t["converting"])
-        # Передаємо далі через фейковий update — використовуємо повідомлення з query
-        start       = ctx.user_data.get("start", 0)
-        end         = start + 40
-        file_id     = ctx.user_data.get("file_id")
-        suffix      = ctx.user_data.get("suffix", ".mp4")
-        url         = ctx.user_data.get("url")
-        source      = ctx.user_data.get("source", "file")
-        ctx.user_data.clear()
-
-        try:
-            if file_id:
-                tg_file = await ctx.bot.get_file(file_id)
-                file_bytes = await tg_file.download_as_bytearray()
-                async with httpx.AsyncClient(timeout=120) as client:
-                    resp = await client.post(
-                        f"{API_BASE}/convert/file",
-                        files={"file": (f"input{suffix}", bytes(file_bytes), "application/octet-stream")},
-                        data={"start": start, "end": end}
-                    )
-                    data = resp.json()
-            elif url:
-                async with httpx.AsyncClient(timeout=60) as client:
-                    resp = await client.post(
-                        f"{API_BASE}/convert/url",
-                        json={"url": url, "start": start, "end": end}
-                    )
-                    data = resp.json()
-            else:
-                await q.edit_message_text(t["error"])
-                return
-
-            job_id = data.get("job_id")
-            if not job_id:
-                await q.edit_message_text(t["error"])
-                return
-
-            ok = await poll_job(job_id)
-            if ok:
-                await q.edit_message_text(t["done"])
-                ctx.user_data[f"source_{job_id}"] = source
-                await ctx.bot.send_message(
-                    chat_id=q.message.chat_id,
-                    text="👇",
-                    reply_markup=app_keyboard(lang, job_id)
-                )
-            else:
-                await q.edit_message_text(t["error"])
-        except Exception as e:
-            logger.error(f"name_skip error: {e}")
-            await q.edit_message_text(t["error"])
-
-    elif q.data == "name_give":
-        await q.edit_message_text(t["write_name"])
-
-    elif q.data.startswith("lang_"):
-        new_lang = q.data.replace("lang_", "")
-        user_lang[user_id] = new_lang
+    if q.data.startswith("lang_"):
+        lang = q.data.replace("lang_", "")
+        user_lang[user_id] = lang
         await q.edit_message_text(
-            TEXTS[new_lang]["welcome"],
+            TEXTS[lang]["welcome"],
             parse_mode="Markdown",
-            reply_markup=main_keyboard(new_lang)
+            reply_markup=main_keyboard(lang)
         )
     elif q.data == "change_lang":
         await q.edit_message_text(
@@ -439,9 +418,16 @@ def main():
             MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video),
         ],
         states={
-            ASK_MOMENT:      [MessageHandler(filters.TEXT & ~filters.COMMAND, got_moment)],
-            ASK_NAME:        [],  # обробляється через on_callback
-            WAIT_NAME_INPUT: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_name_input)],
+            ASK_MOMENT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, got_moment)
+            ],
+            ASK_NAME: [
+                CallbackQueryHandler(cb_name_skip, pattern="^name_skip$"),
+                CallbackQueryHandler(cb_name_give, pattern="^name_give$"),
+            ],
+            WAIT_NAME_INPUT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, got_name_input)
+            ],
         },
         fallbacks=[CommandHandler("start", cmd_start)],
     )
