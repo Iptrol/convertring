@@ -38,7 +38,7 @@ TEXTS = {
         "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
-        "ask_moment": "✂️ З якого моменту зробити рингтон?\nЯ відріжу 40 секунд від цього місця.\n\n• Якщо з самого початку — пиши `00:00`\n• Якщо момент до хвилини — пиши 00:[секунди]. Наприклад — `00:30`\n• Якщо момент після хвилини — пиши [хвилини]:[секунди]. Наприклад — `01:34`",
+        "ask_moment": "✂️ З якого моменту зробити рингтон?\nЯ відріжу 40 секунд від цього місця.\n\nВведи час у форматі `хв:сек`, наприклад:\n• `00:00` — з початку\n• `00:30` — через 30 секунд\n• `01:34` — через 1 хвилину 34 секунди",
         "invalid_moment": "❌ Не розумію формат. Спробуй ще раз.\n\nПриклади: `00:00` `00:30` `01:34`",
     },
     "ru": {
@@ -50,7 +50,7 @@ TEXTS = {
         "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
-        "ask_moment": "✂️ С какого момента сделать рингтон?\nЯ отрежу 40 секунд от этого места.\n\n• Если с самого начала — пиши `00:00`\n• Если момент до минуты — пиши 00:[секунды]. Например — `00:30`\n• Если момент после минуты — пиши [минуты]:[секунды]. Например — `01:34`",
+        "ask_moment": "✂️ С какого момента сделать рингтон?\nЯ отрежу 40 секунд от этого места.\n\nВведи время в формате `мин:сек`, например:\n• `00:00` — с начала\n• `00:30` — через 30 секунд\n• `01:34` — через 1 минуту 34 секунды",
         "invalid_moment": "❌ Не понимаю формат. Попробуй ещё раз.\n\nПримеры: `00:00` `00:30` `01:34`",
     },
     "en": {
@@ -62,7 +62,7 @@ TEXTS = {
         "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
-        "ask_moment": "✂️ From which moment to make the ringtone?\nI'll cut 40 seconds from this point.\n\n• If from the very beginning — type `00:00`\n• If before one minute — type 00:[seconds]. For example — `00:30`\n• If after one minute — type [minutes]:[seconds]. For example — `01:34`",
+        "ask_moment": "✂️ From which moment to make the ringtone?\nI'll cut 40 seconds from this point.\n\nEnter time in `min:sec` format, for example:\n• `00:00` — from the beginning\n• `00:30` — after 30 seconds\n• `01:34` — after 1 minute 34 seconds",
         "invalid_moment": "❌ I don't understand the format. Try again.\n\nExamples: `00:00` `00:30` `01:34`",
     },
 }
