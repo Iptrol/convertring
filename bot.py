@@ -303,7 +303,7 @@ async def cb_name_skip(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await q.edit_message_text(t["done"])
     else:
         await q.edit_message_text(t["error"])
-    ctx.user_data.clear()
+    # НЕ чистимо user_data тут — on_web_app_data ще потребує name_{job_id}
     return ConversationHandler.END
 
 # ── Кнопка "Дати назву" ───────────────────────────────────────────────────
@@ -327,7 +327,7 @@ async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await msg.edit_text(t["done"])
     else:
         await msg.edit_text(t["error"])
-    ctx.user_data.clear()
+    # НЕ чистимо user_data тут — on_web_app_data ще потребує name_{job_id}
     return ConversationHandler.END
 
 # ── URL entry ──────────────────────────────────────────────────────────────
