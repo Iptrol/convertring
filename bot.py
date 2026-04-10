@@ -26,7 +26,7 @@ WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projec
 API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
 
 # Стани ConversationHandler
-ASK_MOMENT, ASK_NAME, WAIT_NAME_INPUT = range(3)
+ASK_MOMENT, ASK_CUSTOM_MOMENT, ASK_NAME, WAIT_NAME_INPUT = range(4)
 
 TEXTS = {
     "uk": {
@@ -38,8 +38,11 @@ TEXTS = {
         "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
-        "ask_moment": "✂️ З якого моменту зробити рингтон?\nЯ відріжу 40 секунд від цього місця.\n\nВведи час у форматі `хв:сек`, наприклад:\n• `00:00` — з початку\n• `00:30` — через 30 секунд\n• `01:34` — через 1 хвилину 34 секунди",
-        "invalid_moment": "❌ Не розумію формат. Спробуй ще раз.\n\nПриклади: `00:00` `00:30` `01:34`",
+        "ask_moment": "🎵 З якого місця зробити рингтон?",
+        "from_start_btn": "▶️ З початку",
+        "custom_moment_btn": "✂️ Вибрати момент",
+        "ask_custom_moment": "⏱ Введи час у форматі `хв:сек`\nЯ відріжу 40 секунд від цього моменту.\nНаприклад: `00:30` або `01:34`",
+        "invalid_moment": "❌ Не розумію формат. Спробуй ще раз.\n\nПриклади: `00:30` `01:34`",
         "ask_name": "💾 Хочеш дати назву рингтону?\nЗ цією назвою він збережеться в тебе в телефоні.",
         "skip_btn": "⏭️ Пропустити",
         "name_btn": "✏️ Дати назву",
@@ -54,8 +57,11 @@ TEXTS = {
         "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
-        "ask_moment": "✂️ С какого момента сделать рингтон?\nЯ отрежу 40 секунд от этого места.\n\nВведи время в формате `мин:сек`, например:\n• `00:00` — с начала\n• `00:30` — через 30 секунд\n• `01:34` — через 1 минуту 34 секунды",
-        "invalid_moment": "❌ Не понимаю формат. Попробуй ещё раз.\n\nПримеры: `00:00` `00:30` `01:34`",
+        "ask_moment": "🎵 С какого места сделать рингтон?",
+        "from_start_btn": "▶️ С начала",
+        "custom_moment_btn": "✂️ Выбрать момент",
+        "ask_custom_moment": "⏱ Введи время в формате `мин:сек`\nЯ отрежу 40 секунд от этого момента.\nНапример: `00:30` или `01:34`",
+        "invalid_moment": "❌ Не понимаю формат. Попробуй ещё раз.\n\nПримеры: `00:30` `01:34`",
         "ask_name": "💾 Хочешь дать название рингтону?\nС этим названием он сохранится у тебя в телефоне.",
         "skip_btn": "⏭️ Пропустить",
         "name_btn": "✏️ Дать название",
@@ -70,8 +76,11 @@ TEXTS = {
         "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
-        "ask_moment": "✂️ From which moment to make the ringtone?\nI'll cut 40 seconds from this point.\n\nEnter time in `min:sec` format, for example:\n• `00:00` — from the beginning\n• `00:30` — after 30 seconds\n• `01:34` — after 1 minute 34 seconds",
-        "invalid_moment": "❌ I don't understand the format. Try again.\n\nExamples: `00:00` `00:30` `01:34`",
+        "ask_moment": "🎵 From which part to make the ringtone?",
+        "from_start_btn": "▶️ From the beginning",
+        "custom_moment_btn": "✂️ Choose moment",
+        "ask_custom_moment": "⏱ Enter time in `min:sec` format\nI'll cut 40 seconds from this moment.\nFor example: `00:30` or `01:34`",
+        "invalid_moment": "❌ I don't understand the format. Try again.\n\nExamples: `00:30` `01:34`",
         "ask_name": "💾 Want to name your ringtone?\nIt will be saved with this name on your phone.",
         "skip_btn": "⏭️ Skip",
         "name_btn": "✏️ Give a name",
@@ -99,6 +108,13 @@ def app_keyboard(lang: str, job_id: str):
         resize_keyboard=True,
         one_time_keyboard=True
     )
+
+def moment_keyboard(lang: str):
+    t = TEXTS[lang]
+    return InlineKeyboardMarkup([[
+        InlineKeyboardButton(t["from_start_btn"],    callback_data="moment_start"),
+        InlineKeyboardButton(t["custom_moment_btn"], callback_data="moment_custom"),
+    ]])
 
 def name_keyboard(lang: str):
     t = TEXTS[lang]
@@ -180,8 +196,7 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
         logger.error(f"send_ringtone error: {e}")
 
 async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
-    """Конвертує і показує кнопку міні-апп. Повертає True якщо успішно."""
-    t = TEXTS[lang]
+    """Конвертує і показує кнопку міні-апп."""
     start       = user_data.get("start", 0)
     end         = start + 40
     file_id     = user_data.get("file_id")
@@ -189,6 +204,7 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
     url         = user_data.get("url")
     source      = user_data.get("source", "file")
     custom_name = user_data.get("custom_name")
+    t           = TEXTS[lang]
 
     try:
         if file_id:
@@ -219,12 +235,10 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
         if not ok:
             return False, None
 
-        # Зберігаємо source і custom_name для on_web_app_data
         if ctx is not None:
             ctx.user_data[f"source_{job_id}"] = source
             ctx.user_data[f"name_{job_id}"] = custom_name
 
-        # Надсилаємо кнопку міні-апп (реклама)
         await bot.send_message(
             chat_id=chat_id,
             text="👇",
@@ -235,8 +249,34 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
         logger.error(f"do_convert error: {e}")
         return False, None
 
-# ── Крок 1: момент ────────────────────────────────────────────────────────
-async def got_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+# ── Після отримання файлу/URL — питаємо момент ─────────────────────────────
+async def ask_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id)
+    t = TEXTS[lang]
+    await update.message.reply_text(t["ask_moment"], reply_markup=moment_keyboard(lang))
+    return ASK_MOMENT
+
+# ── Кнопка "З початку" ─────────────────────────────────────────────────────
+async def cb_moment_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(q.from_user.id)
+    t = TEXTS[lang]
+    ctx.user_data["start"] = 0
+    await q.edit_message_text(t["ask_name"], reply_markup=name_keyboard(lang))
+    return ASK_NAME
+
+# ── Кнопка "Вибрати момент" ────────────────────────────────────────────────
+async def cb_moment_custom(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    q = update.callback_query
+    await q.answer()
+    lang = get_lang(q.from_user.id)
+    t = TEXTS[lang]
+    await q.edit_message_text(t["ask_custom_moment"], parse_mode="Markdown")
+    return ASK_CUSTOM_MOMENT
+
+# ── Юзер ввів час вручну ──────────────────────────────────────────────────
+async def got_custom_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     text = (update.message.text or "").strip()
@@ -244,32 +284,29 @@ async def got_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     start = parse_moment(text)
     if start is None:
         await update.message.reply_text(t["invalid_moment"], parse_mode="Markdown")
-        return ASK_MOMENT
+        return ASK_CUSTOM_MOMENT
 
     ctx.user_data["start"] = start
     await update.message.reply_text(t["ask_name"], reply_markup=name_keyboard(lang))
     return ASK_NAME
 
-# ── Крок 2: name_skip (всередині ConversationHandler) ─────────────────────
+# ── Кнопка "Пропустити" назву ─────────────────────────────────────────────
 async def cb_name_skip(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
     lang = get_lang(q.from_user.id)
     t = TEXTS[lang]
-
     ctx.user_data["custom_name"] = None
     await q.edit_message_text(t["converting"])
-
     ok, _ = await do_convert(ctx.bot, q.message.chat_id, lang, ctx.user_data, ctx)
     if ok:
         await q.edit_message_text(t["done"])
     else:
         await q.edit_message_text(t["error"])
-
     ctx.user_data.clear()
     return ConversationHandler.END
 
-# ── Крок 2: name_give (всередині ConversationHandler) ─────────────────────
+# ── Кнопка "Дати назву" ───────────────────────────────────────────────────
 async def cb_name_give(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
     await q.answer()
@@ -278,20 +315,18 @@ async def cb_name_give(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await q.edit_message_text(t["write_name"])
     return WAIT_NAME_INPUT
 
-# ── Крок 3: юзер ввів назву ──────────────────────────────────────────────
+# ── Юзер ввів назву ───────────────────────────────────────────────────────
 async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     custom_name = (update.message.text or "").strip()
     ctx.user_data["custom_name"] = custom_name
-
     msg = await update.message.reply_text(t["converting"])
     ok, _ = await do_convert(ctx.bot, update.effective_chat.id, lang, ctx.user_data, ctx)
     if ok:
         await msg.edit_text(t["done"])
     else:
         await msg.edit_text(t["error"])
-
     ctx.user_data.clear()
     return ConversationHandler.END
 
@@ -302,12 +337,23 @@ async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         lang = get_lang(update.effective_user.id)
         await update.message.reply_text(TEXTS[lang]["unsupported"])
         return ConversationHandler.END
-
     lang = get_lang(update.effective_user.id)
     ctx.user_data["url"] = text
     ctx.user_data["source"] = get_source_from_url(text)
-    await update.message.reply_text(TEXTS[lang]["ask_moment"], parse_mode="Markdown")
-    return ASK_MOMENT
+    return await ask_moment(update, ctx)
+
+# ── Відео файл ────────────────────────────────────────────────────────────
+async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    file = update.message.video or update.message.document
+    if not file:
+        return
+    suffix = ".mp4"
+    if hasattr(file, "file_name") and file.file_name:
+        suffix = os.path.splitext(file.file_name)[1] or ".mp4"
+    ctx.user_data["file_id"] = file.file_id
+    ctx.user_data["suffix"] = suffix
+    ctx.user_data["source"] = "file"
+    return await ask_moment(update, ctx)
 
 # ── /start ─────────────────────────────────────────────────────────────────
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -362,19 +408,6 @@ async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     except Exception as e:
         logger.error(f"web_app_data error: {e}")
 
-async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    file = update.message.video or update.message.document
-    if not file:
-        return
-    suffix = ".mp4"
-    if hasattr(file, "file_name") and file.file_name:
-        suffix = os.path.splitext(file.file_name)[1] or ".mp4"
-    lang = get_lang(update.effective_user.id)
-    ctx.user_data["file_id"] = file.file_id
-    ctx.user_data["suffix"] = suffix
-    ctx.user_data["source"] = "file"
-    await update.message.reply_text(TEXTS[lang]["ask_moment"], parse_mode="Markdown")
-
 async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     voice = update.message.voice or update.message.audio
     if not voice:
@@ -417,7 +450,11 @@ def main():
         ],
         states={
             ASK_MOMENT: [
-                MessageHandler(filters.TEXT & ~filters.COMMAND, got_moment)
+                CallbackQueryHandler(cb_moment_start,  pattern="^moment_start$"),
+                CallbackQueryHandler(cb_moment_custom, pattern="^moment_custom$"),
+            ],
+            ASK_CUSTOM_MOMENT: [
+                MessageHandler(filters.TEXT & ~filters.COMMAND, got_custom_moment)
             ],
             ASK_NAME: [
                 CallbackQueryHandler(cb_name_skip, pattern="^name_skip$"),
