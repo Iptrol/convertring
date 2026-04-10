@@ -325,7 +325,6 @@ def main():
             ASK_END:   [MessageHandler(filters.TEXT & ~filters.COMMAND, got_end)],
         },
         fallbacks=[CommandHandler("start", cmd_start)],
-        allow_reentry=True,
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
