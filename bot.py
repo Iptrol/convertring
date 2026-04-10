@@ -38,6 +38,7 @@ TEXTS = {
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Натисни на файл\n2. Тапни «Використовувати як мелодію» в правому нижньому куті\n3. Готово! ✅ Галочка біля рингтону підтверджує що все ок\n\n—\nЯкщо потребуєш допомоги з встановленням, обирай в боті кнопку «Як встановити рингтон»\n\nPS: Ти можеш встановити персональний рингтон на різних абонентів: друга, бесті, родину тощо. Тому не зупиняйся ❤️",
         "after_ringtone": "Сподобалось? Роби ще! Кожен контакт заслуговує свій рингтон 🎵",
+        "cta": "Кидай відео, лінк або голосове — і почнемо! 🎵",
         "how_to": "📖 Як встановити рингтон:\n1. Натисни на файл\n2. Тапни «Використовувати як мелодію» в правому нижньому куті\n3. Готово! ✅ Галочка біля рингтону підтверджує що все ок",
         "ask_moment": "🎵 З якого місця зробити рингтон?",
         "from_start_btn": "▶️ З початку",
@@ -61,6 +62,7 @@ TEXTS = {
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Нажми на файл\n2. Тапни «Использовать как мелодию» в правом нижнем углу\n3. Готово! ✅ Галочка рядом с рингтоном подтверждает что всё ок\n\n—\nЕсли нужна помощь с установкой, выбирай в боте кнопку «Как установить рингтон»\n\nPS: Ты можешь установить персональный рингтон для разных контактов: друга, подруги, семьи и т.д. Так что не останавливайся ❤️",
         "after_ringtone": "Понравилось? Делай ещё! Каждый контакт заслуживает свой рингтон 🎵",
+        "cta": "Кидай видео, ссылку или голосовое — и начнём! 🎵",
         "how_to": "📖 Как установить рингтон:\n1. Нажми на файл\n2. Тапни «Использовать как мелодию» в правом нижнем углу\n3. Готово! ✅ Галочка рядом с рингтоном подтверждает что всё ок",
         "ask_moment": "🎵 С какого места сделать рингтон?",
         "from_start_btn": "▶️ С начала",
@@ -84,6 +86,7 @@ TEXTS = {
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Tap on the file\n2. Tap «Use as Ringtone» in the bottom right corner\n3. Done! ✅ A checkmark next to the ringtone means everything is set\n\n—\nIf you need help with installation, tap «How to install» in the bot\n\nPS: You can set personal ringtones for different contacts — friends, family, and more. Keep going ❤️",
         "after_ringtone": "Enjoyed it? Make more! Every contact deserves their own ringtone 🎵",
+        "cta": "Drop a video, link or voice message — let's go! 🎵",
         "how_to": "📖 How to install the ringtone:\n1. Tap on the file\n2. Tap «Use as Ringtone» in the bottom right corner\n3. Done! ✅ A checkmark next to the ringtone means everything is set",
         "ask_moment": "🎵 From which part to make the ringtone?",
         "from_start_btn": "▶️ From the beginning",
@@ -366,9 +369,9 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if lang:
         await update.message.reply_text(
             TEXTS[lang]["welcome"],
-            parse_mode="Markdown",
-            reply_markup=nav_keyboard(lang)
+            parse_mode="Markdown"
         )
+        await update.message.reply_text(TEXTS[lang]["cta"])
     else:
         await update.message.reply_text(
             "👋 Привіт! / Привет! / Hello!\n\nОберіть мову / Выберите язык / Choose language:",
@@ -385,13 +388,10 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     if q.data == "nav_home":
         ctx.user_data.clear()
-        await q.message.reply_text(
-            t["welcome"],
-            parse_mode="Markdown",
-            reply_markup=nav_keyboard(lang)
-        )
+        await q.message.reply_text(t["welcome"], parse_mode="Markdown")
+        await q.message.reply_text(t["cta"])
     elif q.data == "nav_how":
-        await q.message.reply_text(t["how_to"])
+        await q.message.reply_text(t["how_to"], reply_markup=nav_keyboard(lang))
     elif q.data.startswith("lang_"):
         new_lang = q.data.replace("lang_", "")
         user_lang[user_id] = new_lang
