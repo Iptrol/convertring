@@ -104,6 +104,23 @@ def main_keyboard(lang: str):
 def is_url(text: str) -> bool:
     return text.startswith("http://") or text.startswith("https://")
 
+def get_source_from_url(url: str) -> str:
+    """Визначає джерело по URL"""
+    url_lower = url.lower()
+    if "instagram.com" in url_lower:
+        return "instagram"
+    elif "tiktok.com" in url_lower:
+        return "tiktok"
+    elif "youtube.com" in url_lower or "youtu.be" in url_lower:
+        return "youtube"
+    else:
+        return "video"
+
+def make_filename(source: str, job_id: str) -> str:
+    """Генерує унікальну назву файлу: instagram_a3f2.m4r"""
+    short_id = job_id.replace("-", "")[:4]
+    return f"{source}_{short_id}.m4r"
+
 async def poll_job(job_id: str, timeout: int = 120) -> bool:
     async with httpx.AsyncClient() as client:
         for _ in range(timeout // 3):
@@ -119,8 +136,9 @@ async def poll_job(job_id: str, timeout: int = 120) -> bool:
             await asyncio.sleep(3)
     return False
 
-async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str):
+async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str = "file"):
     t = TEXTS[lang]
+    filename = make_filename(source, job_id)
     try:
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.get(f"{API_BASE}/download/{job_id}")
@@ -128,14 +146,14 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str):
                 await ctx.bot.send_document(
                     chat_id=chat_id,
                     document=r.content,
-                    filename="ringtone.m4r",
+                    filename=filename,
                     caption=t["ringtone_caption"],
                     reply_markup=ReplyKeyboardRemove()
                 )
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
 
-async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: str, suffix: str):
+async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: str, suffix: str, source: str = "file"):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     msg = await update.message.reply_text(t["converting"])
@@ -153,6 +171,8 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
         if not job_id:
             await msg.edit_text(t["error"])
             return
+        # Зберігаємо source для on_web_app_data
+        ctx.user_data[f"source_{job_id}"] = source
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
@@ -166,6 +186,7 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
 async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: str, start: int, end: int):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
+    source = get_source_from_url(url)
     msg = await update.message.reply_text(t["converting"])
     try:
         async with httpx.AsyncClient(timeout=60) as client:
@@ -178,6 +199,8 @@ async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE,
         if not job_id:
             await msg.edit_text(t["error"])
             return
+        # Зберігаємо source для on_web_app_data
+        ctx.user_data[f"source_{job_id}"] = source
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
@@ -291,8 +314,10 @@ async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             user_id = update.effective_user.id
             lang = get_lang(user_id)
             t = TEXTS[lang]
+            # Беремо збережений source, або "file" якщо не знайдено
+            source = ctx.user_data.pop(f"source_{job_id}", "file")
             msg = await update.message.reply_text(t["sending"])
-            await send_ringtone(ctx, update.effective_chat.id, job_id, lang)
+            await send_ringtone(ctx, update.effective_chat.id, job_id, lang, source)
             await msg.delete()
     except Exception as e:
         logger.error(f"web_app_data error: {e}")
@@ -304,13 +329,13 @@ async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     suffix = ".mp4"
     if hasattr(file, "file_name") and file.file_name:
         suffix = os.path.splitext(file.file_name)[1] or ".mp4"
-    await process_file(update, ctx, file.file_id, suffix)
+    await process_file(update, ctx, file.file_id, suffix, source="file")
 
 async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     voice = update.message.voice or update.message.audio
     if not voice:
         return
-    await process_file(update, ctx, voice.file_id, ".ogg")
+    await process_file(update, ctx, voice.file_id, ".ogg", source="voice")
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
