@@ -29,12 +29,12 @@ ASK_START, ASK_END = range(2)
 
 TEXTS = {
     "uk": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nЩо можна надіслати:\n📹 Відео файл\n🔗 Посилання на YouTube / TikTok / Instagram\n🎤 Голосове повідомлення\n\nЯ конвертую і надішлю рингтон! 🎵",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nЩо можна надіслати:\n📹 Відео файл\n🔗 Посилання на YouTube / YouTube Music / TikTok / Instagram / Spotify\n🎤 Голосове повідомлення\n\nЯ конвертую і надішлю рингтон! 🎵",
         "converting": "⏳ Отримую та конвертую...",
         "done": "✅ Готово! Натисни кнопку щоб отримати рингтон 👇",
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
-        "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
+        "unsupported": "❌ Надішли відео, голосове або посилання на YouTube / TikTok / Instagram / Spotify",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
         "ask_start": "З якої секунди починати? ⏱\n\nНаприклад: `30` — це 0:30 у відео\n_(введи 0 якщо з початку)_",
@@ -44,12 +44,12 @@ TEXTS = {
         "too_long": "❌ Максимальна тривалість рингтону — 40 секунд. Введи менше значення:",
     },
     "ru": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / TikTok / Instagram\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / YouTube Music / TikTok / Instagram / Spotify\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
         "converting": "⏳ Загружаю и конвертирую...",
         "done": "✅ Готово! Нажми кнопку чтобы получить рингтон 👇",
         "get_btn": "🎵 Получить рингтон",
         "error": "❌ Не удалось обработать. Попробуй другое видео или ссылку.",
-        "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
+        "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube / TikTok / Instagram / Spotify",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
         "ask_start": "С какой секунды начинать? ⏱\n\nНапример: `30` — это 0:30 в видео\n_(введи 0 если с начала)_",
@@ -59,12 +59,12 @@ TEXTS = {
         "too_long": "❌ Максимальная длительность рингтона — 40 секунд. Введи меньшее значение:",
     },
     "en": {
-        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / TikTok / Instagram link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
+        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / YouTube Music / TikTok / Instagram / Spotify link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
         "converting": "⏳ Downloading and converting...",
         "done": "✅ Done! Tap the button to get your ringtone 👇",
         "get_btn": "🎵 Get ringtone",
         "error": "❌ Failed to process. Try another video or link.",
-        "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
+        "unsupported": "❌ Send a video, voice message or YouTube / TikTok / Instagram / Spotify link",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
         "ask_start": "From which second to start? ⏱\n\nExample: `30` means 0:30 in the video\n_(enter 0 to start from the beginning)_",
@@ -105,19 +105,19 @@ def is_url(text: str) -> bool:
     return text.startswith("http://") or text.startswith("https://")
 
 def get_source_from_url(url: str) -> str:
-    """Визначає джерело по URL"""
     url_lower = url.lower()
     if "instagram.com" in url_lower:
         return "instagram"
     elif "tiktok.com" in url_lower:
         return "tiktok"
+    elif "spotify.com" in url_lower:
+        return "spotify"
     elif "youtube.com" in url_lower or "youtu.be" in url_lower:
         return "youtube"
     else:
         return "video"
 
 def make_filename(source: str, job_id: str) -> str:
-    """Генерує унікальну назву файлу: instagram_a3f2.m4r"""
     short_id = job_id.replace("-", "")[:4]
     return f"{source}_{short_id}.m4r"
 
@@ -171,7 +171,6 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
         if not job_id:
             await msg.edit_text(t["error"])
             return
-        # Зберігаємо source для on_web_app_data
         ctx.user_data[f"source_{job_id}"] = source
         ok = await poll_job(job_id)
         if ok:
@@ -199,7 +198,6 @@ async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE,
         if not job_id:
             await msg.edit_text(t["error"])
             return
-        # Зберігаємо source для on_web_app_data
         ctx.user_data[f"source_{job_id}"] = source
         ok = await poll_job(job_id)
         if ok:
@@ -211,7 +209,7 @@ async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE,
         logger.error(f"process_url error: {e}")
         await msg.edit_text(t["error"])
 
-# ── ConversationHandler: крок 1 — отримали URL, питаємо старт ──────────────
+# ── ConversationHandler ─────────────────────────────────────────────────────
 async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").strip()
     if not is_url(text):
@@ -224,7 +222,6 @@ async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(TEXTS[lang]["ask_start"], parse_mode="Markdown")
     return ASK_START
 
-# ── ConversationHandler: крок 2 — отримали старт, питаємо кінець ───────────
 async def got_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
@@ -241,7 +238,6 @@ async def got_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(t["ask_end"], parse_mode="Markdown")
     return ASK_END
 
-# ── ConversationHandler: крок 3 — отримали кінець, конвертуємо ─────────────
 async def got_end(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
@@ -270,7 +266,6 @@ async def got_end(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     await process_url_with_range(update, ctx, url, start, end)
     return ConversationHandler.END
 
-# ── /start скасовує будь-який поточний діалог ──────────────────────────────
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data.clear()
     user_id = update.effective_user.id
@@ -314,7 +309,6 @@ async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             user_id = update.effective_user.id
             lang = get_lang(user_id)
             t = TEXTS[lang]
-            # Беремо збережений source, або "file" якщо не знайдено
             source = ctx.user_data.pop(f"source_{job_id}", "file")
             msg = await update.message.reply_text(t["sending"])
             await send_ringtone(ctx, update.effective_chat.id, job_id, lang, source)
@@ -340,7 +334,6 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
-    # ConversationHandler для URL → старт → кінець
     url_conv = ConversationHandler(
         entry_points=[
             MessageHandler(filters.TEXT & ~filters.COMMAND, url_received)
