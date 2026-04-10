@@ -179,8 +179,8 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
 
-async def do_convert(bot, chat_id: int, lang: str, user_data: dict):
-    """Конвертує і надсилає рингтон. Повертає True якщо успішно."""
+async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
+    """Конвертує і показує кнопку міні-апп. Повертає True якщо успішно."""
     t = TEXTS[lang]
     start       = user_data.get("start", 0)
     end         = start + 40
@@ -219,20 +219,18 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict):
         if not ok:
             return False, None
 
-        # Завантажуємо і надсилаємо файл
-        filename = make_filename(source, job_id, custom_name)
-        async with httpx.AsyncClient(timeout=30) as client:
-            r = await client.get(f"{API_BASE}/download/{job_id}")
-            if r.status_code == 200:
-                await bot.send_document(
-                    chat_id=chat_id,
-                    document=r.content,
-                    filename=filename,
-                    caption=t["ringtone_caption"],
-                    reply_markup=ReplyKeyboardRemove()
-                )
-                return True, job_id
-        return False, None
+        # Зберігаємо source і custom_name для on_web_app_data
+        if ctx is not None:
+            ctx.user_data[f"source_{job_id}"] = source
+            ctx.user_data[f"name_{job_id}"] = custom_name
+
+        # Надсилаємо кнопку міні-апп (реклама)
+        await bot.send_message(
+            chat_id=chat_id,
+            text="👇",
+            reply_markup=app_keyboard(lang, job_id)
+        )
+        return True, job_id
     except Exception as e:
         logger.error(f"do_convert error: {e}")
         return False, None
@@ -262,7 +260,7 @@ async def cb_name_skip(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["custom_name"] = None
     await q.edit_message_text(t["converting"])
 
-    ok, _ = await do_convert(ctx.bot, q.message.chat_id, lang, ctx.user_data)
+    ok, _ = await do_convert(ctx.bot, q.message.chat_id, lang, ctx.user_data, ctx)
     if ok:
         await q.edit_message_text(t["done"])
     else:
@@ -288,7 +286,7 @@ async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["custom_name"] = custom_name
 
     msg = await update.message.reply_text(t["converting"])
-    ok, _ = await do_convert(ctx.bot, update.effective_chat.id, lang, ctx.user_data)
+    ok, _ = await do_convert(ctx.bot, update.effective_chat.id, lang, ctx.user_data, ctx)
     if ok:
         await msg.edit_text(t["done"])
     else:
