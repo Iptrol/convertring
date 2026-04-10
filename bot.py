@@ -433,10 +433,10 @@ def main():
     )
 
     app.add_handler(CommandHandler("start", cmd_start))
-    app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_web_app_data))
     app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, on_voice))
     app.add_handler(conv)
+    app.add_handler(CallbackQueryHandler(on_callback))
 
     logger.info("✅ ConvertRing bot running...")
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
