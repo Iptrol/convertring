@@ -13,7 +13,8 @@ from telegram import (
 )
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
-    MessageHandler, ContextTypes, filters
+    MessageHandler, ContextTypes, filters,
+    ConversationHandler
 )
 
 logging.basicConfig(level=logging.INFO)
@@ -22,6 +23,9 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN  = os.getenv("BOT_TOKEN", "YOUR_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projects-6797bf46.vercel.app")
 API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
+
+# Стани ConversationHandler
+ASK_START, ASK_END = range(2)
 
 TEXTS = {
     "uk": {
@@ -33,6 +37,11 @@ TEXTS = {
         "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
+        "ask_start": "З якої секунди починати? ⏱\n\nНаприклад: `30` — це 0:30 у відео\n_(введи 0 якщо з початку)_",
+        "ask_end": "До якої секунди? ⏱\n\nНаприклад: `60` — це 1:00 у відео\n_(максимум 40 секунд від старту)_",
+        "invalid_number": "❌ Введи ціле число, наприклад: `30`",
+        "invalid_range": "❌ Кінець має бути більше початку. Введи знову:",
+        "too_long": "❌ Максимальна тривалість рингтону — 40 секунд. Введи менше значення:",
     },
     "ru": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / TikTok / Instagram\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
@@ -43,6 +52,11 @@ TEXTS = {
         "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
+        "ask_start": "С какой секунды начинать? ⏱\n\nНапример: `30` — это 0:30 в видео\n_(введи 0 если с начала)_",
+        "ask_end": "До какой секунды? ⏱\n\nНапример: `60` — это 1:00 в видео\n_(максимум 40 секунд от старта)_",
+        "invalid_number": "❌ Введи целое число, например: `30`",
+        "invalid_range": "❌ Конец должен быть больше начала. Введи снова:",
+        "too_long": "❌ Максимальная длительность рингтона — 40 секунд. Введи меньшее значение:",
     },
     "en": {
         "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / TikTok / Instagram link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
@@ -53,6 +67,11 @@ TEXTS = {
         "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
+        "ask_start": "From which second to start? ⏱\n\nExample: `30` means 0:30 in the video\n_(enter 0 to start from the beginning)_",
+        "ask_end": "Until which second? ⏱\n\nExample: `60` means 1:00 in the video\n_(max 40 seconds from start)_",
+        "invalid_number": "❌ Enter a whole number, e.g.: `30`",
+        "invalid_range": "❌ End must be greater than start. Try again:",
+        "too_long": "❌ Max ringtone duration is 40 seconds. Enter a smaller value:",
     },
 }
 
@@ -68,7 +87,6 @@ def lang_keyboard():
         InlineKeyboardButton("🇬🇧 English",    callback_data="lang_en"),
     ]])
 
-# ✅ ВИПРАВЛЕНО: ReplyKeyboardMarkup замість InlineKeyboardMarkup
 def app_keyboard(lang: str, job_id: str):
     v = int(time.time())
     url = f"{WEBAPP_URL}?lang={lang}&job_id={job_id}&v={v}"
@@ -107,7 +125,6 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str):
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.get(f"{API_BASE}/download/{job_id}")
             if r.status_code == 200:
-                # ✅ ВИПРАВЛЕНО: після надсилання файлу прибираємо ReplyKeyboard
                 await ctx.bot.send_document(
                     chat_id=chat_id,
                     document=r.content,
@@ -139,7 +156,6 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
-            # ✅ ВИПРАВЛЕНО: ReplyKeyboard надсилається окремим повідомленням
             await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
         else:
             await msg.edit_text(t["error"])
@@ -147,7 +163,7 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
         logger.error(f"process_file error: {e}")
         await msg.edit_text(t["error"])
 
-async def process_url_msg(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: str):
+async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: str, start: int, end: int):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     msg = await update.message.reply_text(t["converting"])
@@ -155,7 +171,7 @@ async def process_url_msg(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: s
         async with httpx.AsyncClient(timeout=60) as client:
             resp = await client.post(
                 f"{API_BASE}/convert/url",
-                json={"url": url, "start": 0, "end": 30}
+                json={"url": url, "start": start, "end": end}
             )
             data = resp.json()
         job_id = data.get("job_id")
@@ -165,7 +181,6 @@ async def process_url_msg(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: s
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
-            # ✅ ВИПРАВЛЕНО: ReplyKeyboard надсилається окремим повідомленням
             await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
         else:
             await msg.edit_text(t["error"])
@@ -173,7 +188,68 @@ async def process_url_msg(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: s
         logger.error(f"process_url error: {e}")
         await msg.edit_text(t["error"])
 
+# ── ConversationHandler: крок 1 — отримали URL, питаємо старт ──────────────
+async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    text = (update.message.text or "").strip()
+    if not is_url(text):
+        lang = get_lang(update.effective_user.id)
+        await update.message.reply_text(TEXTS[lang]["unsupported"])
+        return ConversationHandler.END
+
+    lang = get_lang(update.effective_user.id)
+    ctx.user_data["url"] = text
+    await update.message.reply_text(TEXTS[lang]["ask_start"], parse_mode="Markdown")
+    return ASK_START
+
+# ── ConversationHandler: крок 2 — отримали старт, питаємо кінець ───────────
+async def got_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id)
+    t = TEXTS[lang]
+    text = (update.message.text or "").strip()
+    try:
+        start = int(text)
+        if start < 0:
+            raise ValueError
+    except ValueError:
+        await update.message.reply_text(t["invalid_number"], parse_mode="Markdown")
+        return ASK_START
+
+    ctx.user_data["start"] = start
+    await update.message.reply_text(t["ask_end"], parse_mode="Markdown")
+    return ASK_END
+
+# ── ConversationHandler: крок 3 — отримали кінець, конвертуємо ─────────────
+async def got_end(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    lang = get_lang(update.effective_user.id)
+    t = TEXTS[lang]
+    text = (update.message.text or "").strip()
+    start = ctx.user_data.get("start", 0)
+
+    try:
+        end = int(text)
+        if end < 0:
+            raise ValueError
+    except ValueError:
+        await update.message.reply_text(t["invalid_number"], parse_mode="Markdown")
+        return ASK_END
+
+    if end <= start:
+        await update.message.reply_text(t["invalid_range"], parse_mode="Markdown")
+        return ASK_END
+
+    if end - start > 40:
+        await update.message.reply_text(t["too_long"], parse_mode="Markdown")
+        return ASK_END
+
+    url = ctx.user_data.get("url")
+    ctx.user_data.clear()
+
+    await process_url_with_range(update, ctx, url, start, end)
+    return ConversationHandler.END
+
+# ── /start скасовує будь-який поточний діалог ──────────────────────────────
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    ctx.user_data.clear()
     user_id = update.effective_user.id
     lang = user_lang.get(user_id)
     if lang:
@@ -187,6 +263,7 @@ async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
             "👋 Привіт! / Привет! / Hello!\n\nОберіть мову / Выберите язык / Choose language:",
             reply_markup=lang_keyboard()
         )
+    return ConversationHandler.END
 
 async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     q = update.callback_query
@@ -235,24 +312,29 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     await process_file(update, ctx, voice.file_id, ".ogg")
 
-async def on_text(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    if update.message.web_app_data:
-        return
-    text = (update.message.text or "").strip()
-    lang = get_lang(update.effective_user.id)
-    if is_url(text):
-        await process_url_msg(update, ctx, text)
-    else:
-        await update.message.reply_text(TEXTS[lang]["unsupported"])
-
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
+
+    # ConversationHandler для URL → старт → кінець
+    url_conv = ConversationHandler(
+        entry_points=[
+            MessageHandler(filters.TEXT & ~filters.COMMAND, url_received)
+        ],
+        states={
+            ASK_START: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_start)],
+            ASK_END:   [MessageHandler(filters.TEXT & ~filters.COMMAND, got_end)],
+        },
+        fallbacks=[CommandHandler("start", cmd_start)],
+        allow_reentry=True,
+    )
+
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_web_app_data))
     app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video))
     app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, on_voice))
-    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, on_text))
+    app.add_handler(url_conv)
+
     logger.info("✅ ConvertRing bot running...")
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
