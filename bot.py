@@ -5,7 +5,12 @@ import asyncio
 import httpx
 import json
 
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, WebAppInfo
+from telegram import (
+    Update,
+    InlineKeyboardButton, InlineKeyboardMarkup,
+    KeyboardButton, ReplyKeyboardMarkup, ReplyKeyboardRemove,
+    WebAppInfo
+)
 from telegram.ext import (
     Application, CommandHandler, CallbackQueryHandler,
     MessageHandler, ContextTypes, filters
@@ -63,12 +68,15 @@ def lang_keyboard():
         InlineKeyboardButton("🇬🇧 English",    callback_data="lang_en"),
     ]])
 
+# ✅ ВИПРАВЛЕНО: ReplyKeyboardMarkup замість InlineKeyboardMarkup
 def app_keyboard(lang: str, job_id: str):
     v = int(time.time())
     url = f"{WEBAPP_URL}?lang={lang}&job_id={job_id}&v={v}"
-    return InlineKeyboardMarkup([[
-        InlineKeyboardButton(TEXTS[lang]["get_btn"], web_app=WebAppInfo(url=url))
-    ]])
+    return ReplyKeyboardMarkup(
+        [[KeyboardButton(TEXTS[lang]["get_btn"], web_app=WebAppInfo(url=url))]],
+        resize_keyboard=True,
+        one_time_keyboard=True
+    )
 
 def main_keyboard(lang: str):
     return InlineKeyboardMarkup([[
@@ -99,11 +107,13 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str):
         async with httpx.AsyncClient(timeout=30) as client:
             r = await client.get(f"{API_BASE}/download/{job_id}")
             if r.status_code == 200:
+                # ✅ ВИПРАВЛЕНО: після надсилання файлу прибираємо ReplyKeyboard
                 await ctx.bot.send_document(
                     chat_id=chat_id,
                     document=r.content,
                     filename="ringtone.m4r",
-                    caption=t["ringtone_caption"]
+                    caption=t["ringtone_caption"],
+                    reply_markup=ReplyKeyboardRemove()
                 )
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
@@ -128,7 +138,9 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
             return
         ok = await poll_job(job_id)
         if ok:
-            await msg.edit_text(t["done"], reply_markup=app_keyboard(lang, job_id))
+            await msg.edit_text(t["done"])
+            # ✅ ВИПРАВЛЕНО: ReplyKeyboard надсилається окремим повідомленням
+            await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
         else:
             await msg.edit_text(t["error"])
     except Exception as e:
@@ -152,7 +164,9 @@ async def process_url_msg(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: s
             return
         ok = await poll_job(job_id)
         if ok:
-            await msg.edit_text(t["done"], reply_markup=app_keyboard(lang, job_id))
+            await msg.edit_text(t["done"])
+            # ✅ ВИПРАВЛЕНО: ReplyKeyboard надсилається окремим повідомленням
+            await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
         else:
             await msg.edit_text(t["error"])
     except Exception as e:
