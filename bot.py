@@ -4,6 +4,7 @@ import logging
 import asyncio
 import httpx
 import json
+import re
 
 from telegram import (
     Update,
@@ -25,53 +26,44 @@ WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projec
 API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
 
 # Стани ConversationHandler
-ASK_START, ASK_END = range(2)
+ASK_MOMENT = 0
 
 TEXTS = {
     "uk": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nЩо можна надіслати:\n📹 Відео файл\n🔗 Посилання на YouTube / YouTube Music / TikTok / Instagram / Spotify\n🎤 Голосове повідомлення\n\nЯ конвертую і надішлю рингтон! 🎵",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nЩо можна надіслати:\n📹 Відео файл\n🔗 Посилання на YouTube / YouTube Music / TikTok / Instagram\n🎤 Голосове повідомлення\n\nЯ конвертую і надішлю рингтон! 🎵",
         "converting": "⏳ Отримую та конвертую...",
         "done": "✅ Готово! Натисни кнопку щоб отримати рингтон 👇",
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
-        "unsupported": "❌ Надішли відео, голосове або посилання на YouTube / TikTok / Instagram / Spotify",
+        "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/TikTok/Instagram",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Скачай файл на Mac/PC\n2. Підключи iPhone кабелем\n3. Finder → iPhone → Рингтони → перетягни файл",
-        "ask_start": "З якої секунди починати? ⏱\n\nНаприклад: `30` — це 0:30 у відео\n_(введи 0 якщо з початку)_",
-        "ask_end": "До якої секунди? ⏱\n\nНаприклад: `60` — це 1:00 у відео\n_(максимум 40 секунд від старту)_",
-        "invalid_number": "❌ Введи ціле число, наприклад: `30`",
-        "invalid_range": "❌ Кінець має бути більше початку. Введи знову:",
-        "too_long": "❌ Максимальна тривалість рингтону — 40 секунд. Введи менше значення:",
+        "ask_moment": "✂️ З якого моменту зробити рингтон?\nЯ відріжу 40 секунд від цього місця.\n\n• Якщо з самого початку — пиши `00:00`\n• Якщо момент до хвилини — пиши 00:[секунди]. Наприклад — `00:30`\n• Якщо момент після хвилини — пиши [хвилини]:[секунди]. Наприклад — `01:34`",
+        "invalid_moment": "❌ Не розумію формат. Спробуй ще раз.\n\nПриклади: `00:00` `00:30` `01:34`",
     },
     "ru": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / YouTube Music / TikTok / Instagram / Spotify\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nЧто можно отправить:\n📹 Видео файл\n🔗 Ссылку на YouTube / YouTube Music / TikTok / Instagram\n🎤 Голосовое сообщение\n\nЯ конвертирую и отправлю рингтон! 🎵",
         "converting": "⏳ Загружаю и конвертирую...",
         "done": "✅ Готово! Нажми кнопку чтобы получить рингтон 👇",
         "get_btn": "🎵 Получить рингтон",
         "error": "❌ Не удалось обработать. Попробуй другое видео или ссылку.",
-        "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube / TikTok / Instagram / Spotify",
+        "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/TikTok/Instagram",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Скачай файл на Mac/PC\n2. Подключи iPhone кабелем\n3. Finder → iPhone → Рингтоны → перетащи файл",
-        "ask_start": "С какой секунды начинать? ⏱\n\nНапример: `30` — это 0:30 в видео\n_(введи 0 если с начала)_",
-        "ask_end": "До какой секунды? ⏱\n\nНапример: `60` — это 1:00 в видео\n_(максимум 40 секунд от старта)_",
-        "invalid_number": "❌ Введи целое число, например: `30`",
-        "invalid_range": "❌ Конец должен быть больше начала. Введи снова:",
-        "too_long": "❌ Максимальная длительность рингтона — 40 секунд. Введи меньшее значение:",
+        "ask_moment": "✂️ С какого момента сделать рингтон?\nЯ отрежу 40 секунд от этого места.\n\n• Если с самого начала — пиши `00:00`\n• Если момент до минуты — пиши 00:[секунды]. Например — `00:30`\n• Если момент после минуты — пиши [минуты]:[секунды]. Например — `01:34`",
+        "invalid_moment": "❌ Не понимаю формат. Попробуй ещё раз.\n\nПримеры: `00:00` `00:30` `01:34`",
     },
     "en": {
-        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / YouTube Music / TikTok / Instagram / Spotify link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
+        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nYou can send:\n📹 Video file\n🔗 YouTube / YouTube Music / TikTok / Instagram link\n🎤 Voice message\n\nI'll convert it to an iPhone ringtone! 🎵",
         "converting": "⏳ Downloading and converting...",
         "done": "✅ Done! Tap the button to get your ringtone 👇",
         "get_btn": "🎵 Get ringtone",
         "error": "❌ Failed to process. Try another video or link.",
-        "unsupported": "❌ Send a video, voice message or YouTube / TikTok / Instagram / Spotify link",
+        "unsupported": "❌ Send a video, voice message or YouTube/TikTok/Instagram link",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Download the file to Mac/PC\n2. Connect iPhone via cable\n3. Finder → iPhone → Tones → drag the file",
-        "ask_start": "From which second to start? ⏱\n\nExample: `30` means 0:30 in the video\n_(enter 0 to start from the beginning)_",
-        "ask_end": "Until which second? ⏱\n\nExample: `60` means 1:00 in the video\n_(max 40 seconds from start)_",
-        "invalid_number": "❌ Enter a whole number, e.g.: `30`",
-        "invalid_range": "❌ End must be greater than start. Try again:",
-        "too_long": "❌ Max ringtone duration is 40 seconds. Enter a smaller value:",
+        "ask_moment": "✂️ From which moment to make the ringtone?\nI'll cut 40 seconds from this point.\n\n• If from the very beginning — type `00:00`\n• If before one minute — type 00:[seconds]. For example — `00:30`\n• If after one minute — type [minutes]:[seconds]. For example — `01:34`",
+        "invalid_moment": "❌ I don't understand the format. Try again.\n\nExamples: `00:00` `00:30` `01:34`",
     },
 }
 
@@ -103,6 +95,18 @@ def main_keyboard(lang: str):
 
 def is_url(text: str) -> bool:
     return text.startswith("http://") or text.startswith("https://")
+
+def parse_moment(text: str) -> int | None:
+    """Парсить mm:ss → секунди. Повертає None якщо формат невірний."""
+    text = text.strip()
+    match = re.fullmatch(r"(\d{1,2}):(\d{2})", text)
+    if not match:
+        return None
+    minutes = int(match.group(1))
+    seconds = int(match.group(2))
+    if seconds >= 60:
+        return None
+    return minutes * 60 + seconds
 
 def get_source_from_url(url: str) -> str:
     url_lower = url.lower()
@@ -153,24 +157,47 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
 
-async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: str, suffix: str, source: str = "file"):
+async def process_with_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE, start: int):
+    """Спільна логіка конвертації після отримання моменту старту"""
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
+    end = start + 40
     msg = await update.message.reply_text(t["converting"])
+
     try:
-        tg_file = await ctx.bot.get_file(file_id)
-        file_bytes = await tg_file.download_as_bytearray()
-        async with httpx.AsyncClient(timeout=120) as client:
-            resp = await client.post(
-                f"{API_BASE}/convert/file",
-                files={"file": (f"input{suffix}", bytes(file_bytes), "application/octet-stream")},
-                data={"start": 0, "end": 30}
-            )
-            data = resp.json()
+        # Визначаємо чи це файл чи URL
+        file_id = ctx.user_data.get("file_id")
+        suffix  = ctx.user_data.get("suffix", ".mp4")
+        url     = ctx.user_data.get("url")
+        source  = ctx.user_data.get("source", "file")
+        ctx.user_data.clear()
+
+        if file_id:
+            tg_file = await ctx.bot.get_file(file_id)
+            file_bytes = await tg_file.download_as_bytearray()
+            async with httpx.AsyncClient(timeout=120) as client:
+                resp = await client.post(
+                    f"{API_BASE}/convert/file",
+                    files={"file": (f"input{suffix}", bytes(file_bytes), "application/octet-stream")},
+                    data={"start": start, "end": end}
+                )
+                data = resp.json()
+        elif url:
+            async with httpx.AsyncClient(timeout=60) as client:
+                resp = await client.post(
+                    f"{API_BASE}/convert/url",
+                    json={"url": url, "start": start, "end": end}
+                )
+                data = resp.json()
+        else:
+            await msg.edit_text(t["error"])
+            return
+
         job_id = data.get("job_id")
         if not job_id:
             await msg.edit_text(t["error"])
             return
+
         ctx.user_data[f"source_{job_id}"] = source
         ok = await poll_job(job_id)
         if ok:
@@ -179,37 +206,24 @@ async def process_file(update: Update, ctx: ContextTypes.DEFAULT_TYPE, file_id: 
         else:
             await msg.edit_text(t["error"])
     except Exception as e:
-        logger.error(f"process_file error: {e}")
+        logger.error(f"process_with_start error: {e}")
         await msg.edit_text(t["error"])
 
-async def process_url_with_range(update: Update, ctx: ContextTypes.DEFAULT_TYPE, url: str, start: int, end: int):
+# ── ConversationHandler: отримали момент ───────────────────────────────────
+async def got_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
-    source = get_source_from_url(url)
-    msg = await update.message.reply_text(t["converting"])
-    try:
-        async with httpx.AsyncClient(timeout=60) as client:
-            resp = await client.post(
-                f"{API_BASE}/convert/url",
-                json={"url": url, "start": start, "end": end}
-            )
-            data = resp.json()
-        job_id = data.get("job_id")
-        if not job_id:
-            await msg.edit_text(t["error"])
-            return
-        ctx.user_data[f"source_{job_id}"] = source
-        ok = await poll_job(job_id)
-        if ok:
-            await msg.edit_text(t["done"])
-            await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
-        else:
-            await msg.edit_text(t["error"])
-    except Exception as e:
-        logger.error(f"process_url error: {e}")
-        await msg.edit_text(t["error"])
+    text = (update.message.text or "").strip()
 
-# ── ConversationHandler ─────────────────────────────────────────────────────
+    start = parse_moment(text)
+    if start is None:
+        await update.message.reply_text(t["invalid_moment"], parse_mode="Markdown")
+        return ASK_MOMENT
+
+    await process_with_start(update, ctx, start)
+    return ConversationHandler.END
+
+# ── Отримали URL ───────────────────────────────────────────────────────────
 async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     text = (update.message.text or "").strip()
     if not is_url(text):
@@ -219,53 +233,11 @@ async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     lang = get_lang(update.effective_user.id)
     ctx.user_data["url"] = text
-    await update.message.reply_text(TEXTS[lang]["ask_start"], parse_mode="Markdown")
-    return ASK_START
+    ctx.user_data["source"] = get_source_from_url(text)
+    await update.message.reply_text(TEXTS[lang]["ask_moment"], parse_mode="Markdown")
+    return ASK_MOMENT
 
-async def got_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    lang = get_lang(update.effective_user.id)
-    t = TEXTS[lang]
-    text = (update.message.text or "").strip()
-    try:
-        start = int(text)
-        if start < 0:
-            raise ValueError
-    except ValueError:
-        await update.message.reply_text(t["invalid_number"], parse_mode="Markdown")
-        return ASK_START
-
-    ctx.user_data["start"] = start
-    await update.message.reply_text(t["ask_end"], parse_mode="Markdown")
-    return ASK_END
-
-async def got_end(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    lang = get_lang(update.effective_user.id)
-    t = TEXTS[lang]
-    text = (update.message.text or "").strip()
-    start = ctx.user_data.get("start", 0)
-
-    try:
-        end = int(text)
-        if end < 0:
-            raise ValueError
-    except ValueError:
-        await update.message.reply_text(t["invalid_number"], parse_mode="Markdown")
-        return ASK_END
-
-    if end <= start:
-        await update.message.reply_text(t["invalid_range"], parse_mode="Markdown")
-        return ASK_END
-
-    if end - start > 40:
-        await update.message.reply_text(t["too_long"], parse_mode="Markdown")
-        return ASK_END
-
-    url = ctx.user_data.get("url")
-    ctx.user_data.clear()
-
-    await process_url_with_range(update, ctx, url, start, end)
-    return ConversationHandler.END
-
+# ── /start ─────────────────────────────────────────────────────────────────
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data.clear()
     user_id = update.effective_user.id
@@ -317,30 +289,63 @@ async def on_web_app_data(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         logger.error(f"web_app_data error: {e}")
 
 async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Відео файл — питаємо момент"""
     file = update.message.video or update.message.document
     if not file:
         return
     suffix = ".mp4"
     if hasattr(file, "file_name") and file.file_name:
         suffix = os.path.splitext(file.file_name)[1] or ".mp4"
-    await process_file(update, ctx, file.file_id, suffix, source="file")
+
+    lang = get_lang(update.effective_user.id)
+    ctx.user_data["file_id"] = file.file_id
+    ctx.user_data["suffix"] = suffix
+    ctx.user_data["source"] = "file"
+    await update.message.reply_text(TEXTS[lang]["ask_moment"], parse_mode="Markdown")
 
 async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
+    """Голосове — одразу конвертуємо без питань"""
     voice = update.message.voice or update.message.audio
     if not voice:
         return
-    await process_file(update, ctx, voice.file_id, ".ogg", source="voice")
+    lang = get_lang(update.effective_user.id)
+    t = TEXTS[lang]
+    msg = await update.message.reply_text(t["converting"])
+    try:
+        tg_file = await ctx.bot.get_file(voice.file_id)
+        file_bytes = await tg_file.download_as_bytearray()
+        async with httpx.AsyncClient(timeout=120) as client:
+            resp = await client.post(
+                f"{API_BASE}/convert/file",
+                files={"file": ("input.ogg", bytes(file_bytes), "application/octet-stream")},
+                data={"start": 0, "end": 40}
+            )
+            data = resp.json()
+        job_id = data.get("job_id")
+        if not job_id:
+            await msg.edit_text(t["error"])
+            return
+        ctx.user_data[f"source_{job_id}"] = "voice"
+        ok = await poll_job(job_id)
+        if ok:
+            await msg.edit_text(t["done"])
+            await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
+        else:
+            await msg.edit_text(t["error"])
+    except Exception as e:
+        logger.error(f"on_voice error: {e}")
+        await msg.edit_text(t["error"])
 
 def main():
     app = Application.builder().token(BOT_TOKEN).build()
 
-    url_conv = ConversationHandler(
+    conv = ConversationHandler(
         entry_points=[
-            MessageHandler(filters.TEXT & ~filters.COMMAND, url_received)
+            MessageHandler(filters.TEXT & ~filters.COMMAND, url_received),
+            MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video),
         ],
         states={
-            ASK_START: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_start)],
-            ASK_END:   [MessageHandler(filters.TEXT & ~filters.COMMAND, got_end)],
+            ASK_MOMENT: [MessageHandler(filters.TEXT & ~filters.COMMAND, got_moment)],
         },
         fallbacks=[CommandHandler("start", cmd_start)],
     )
@@ -348,9 +353,8 @@ def main():
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(CallbackQueryHandler(on_callback))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_web_app_data))
-    app.add_handler(MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video))
     app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, on_voice))
-    app.add_handler(url_conv)
+    app.add_handler(conv)
 
     logger.info("✅ ConvertRing bot running...")
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
