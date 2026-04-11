@@ -237,12 +237,19 @@ if (!botJobId) {
 }
 
 function startAd1() {
+  const fallback1 = setTimeout(() => {
+    $('screen1').classList.add('hidden');
+    $('screen2').classList.remove('hidden');
+    startAd2();
+  }, 10000);
+
   show_10863560().then(() => {
-    // Перша реклама закрита → одразу запускаємо другу
+    clearTimeout(fallback1);
     $('screen1').classList.add('hidden');
     $('screen2').classList.remove('hidden');
     startAd2();
   }).catch(() => {
+    clearTimeout(fallback1);
     $('screen1').classList.add('hidden');
     $('screen2').classList.remove('hidden');
     startAd2();
@@ -254,9 +261,15 @@ function watchAd2() {
 }
 
 function startAd2() {
+  const fallback2 = setTimeout(() => {
+    autoSwitch();
+  }, 10000);
+
   show_10863560().then(() => {
+    clearTimeout(fallback2);
     autoSwitch();
   }).catch(() => {
+    clearTimeout(fallback2);
     autoSwitch();
   });
 }
