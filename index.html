@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ConvertRing</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<!-- Monetag SDK -->
 <script src='//libtl.com/sdk.js' data-zone='10863560' data-sdk='show_10863560'></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -81,16 +80,42 @@
     padding: 24px 20px;
     text-align: center;
   }
+  .counter {
+    display: inline-block;
+    background: rgba(124,106,255,0.15);
+    border: 1px solid rgba(124,106,255,0.3);
+    border-radius: 20px;
+    padding: 4px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--accent);
+    margin-bottom: 16px;
+  }
+  .ad-icon { font-size: 48px; margin-bottom: 12px; }
   .ad-title {
     font-family: 'Syne', sans-serif;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: 700;
-    margin-bottom: 4px;
+    margin-bottom: 6px;
   }
   .ad-sub {
     font-size: 13px;
     color: var(--muted);
     margin-bottom: 20px;
+  }
+  .progress-bar {
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
   }
   .btn {
     width: 100%;
@@ -115,11 +140,11 @@
     color: white;
     box-shadow: 0 4px 20px rgba(34,197,94,0.3);
   }
+  .btn-green:active { transform: scale(0.98); }
   .screen { width: 100%; display: flex; flex-direction: column; gap: 16px; }
   .hidden { display: none !important; }
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.6} }
   .pulsing { animation: pulse 1.5s ease infinite; }
-  .ad-icon { font-size: 56px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -130,23 +155,41 @@
     <div class="logo-text">ConvertRing</div>
   </div>
 
-  <!-- SCREEN: Ad -->
-  <div class="screen" id="screenAd">
+  <!-- SCREEN: Реклама 1/2 (автоматична) -->
+  <div class="screen" id="screen1">
     <div class="ad-card">
-      <div class="ad-icon pulsing" id="adIcon">🎵</div>
-      <div class="ad-title" id="adTitle">Твій рингтон готовий!</div>
-      <div class="ad-sub" id="adSub">Перегляньте рекламу щоб отримати файл</div>
-      <button class="btn btn-primary" id="watchBtn" onclick="watchAd()">
-        📣 Переглянути рекламу
+      <div class="counter">📣 Реклама 1 з 2</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+      <div class="ad-icon pulsing">🎵</div>
+      <div class="ad-title">Твій рингтон готовий!</div>
+      <div class="ad-sub" id="sub1">Завантажуємо рекламу 1/2...</div>
+      <button class="btn btn-primary" id="btn1" disabled onclick="watchAd2()">
+        ⏳ Зачекайте...
       </button>
     </div>
   </div>
 
-  <!-- SCREEN: Ready to get -->
+  <!-- SCREEN: Реклама 2/2 -->
+  <div class="screen hidden" id="screen2">
+    <div class="ad-card">
+      <div class="counter">📣 Реклама 2 з 2</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
+      <div class="ad-icon">✅</div>
+      <div class="ad-title">Майже готово!</div>
+      <div class="ad-sub">Залишилась остання реклама</div>
+      <button class="btn btn-primary" onclick="watchAd2Final()">
+        📣 Переглянути рекламу 2/2
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Готово -->
   <div class="screen hidden" id="screenReady">
     <div class="ad-card">
-      <div class="ad-icon">✅</div>
-      <div class="ad-title" id="readyTitle">Дякуємо! Забирай рингтон</div>
+      <div class="counter" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#22c55e;">✅ Готово!</div>
+      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
+      <div class="ad-icon">🎵</div>
+      <div class="ad-title" id="readyTitle">Дякуємо!</div>
       <div class="ad-sub" id="readySub">Натисни кнопку щоб отримати файл у чат</div>
       <button class="btn btn-green" onclick="getFile()">
         🎵 Отримати рингтон у чат
@@ -179,63 +222,48 @@ const botJobId = urlParams.get('job_id');
 const lang = urlParams.get('lang') || 'uk';
 
 const T = {
-  uk: {
-    ready: 'Твій рингтон готовий!',
-    sub: 'Перегляньте рекламу щоб отримати файл',
-    watch: '📣 Переглянути рекламу',
-    doneTitle: 'Дякуємо! Забирай рингтон',
-    doneSub: 'Натисни кнопку щоб отримати файл у чат',
-    get: '🎵 Отримати рингтон у чат',
-  },
-  ru: {
-    ready: 'Твой рингтон готов!',
-    sub: 'Посмотрите рекламу чтобы получить файл',
-    watch: '📣 Посмотреть рекламу',
-    doneTitle: 'Спасибо! Забирай рингтон',
-    doneSub: 'Нажми кнопку чтобы получить файл в чат',
-    get: '🎵 Получить рингтон в чат',
-  },
-  en: {
-    ready: 'Your ringtone is ready!',
-    sub: 'Watch an ad to get your file',
-    watch: '📣 Watch ad',
-    doneTitle: 'Thanks! Get your ringtone',
-    doneSub: 'Tap the button to get the file in chat',
-    get: '🎵 Get ringtone in chat',
-  },
-}[lang] || {
-  ready: 'Твій рингтон готовий!',
-  sub: 'Перегляньте рекламу щоб отримати файл',
-  watch: '📣 Переглянути рекламу',
-  doneTitle: 'Дякуємо! Забирай рингтон',
-  doneSub: 'Натисни кнопку щоб отримати файл у чат',
-  get: '🎵 Отримати рингтон у чат',
-};
+  uk: { doneTitle: 'Дякуємо!', doneSub: 'Натисни кнопку щоб отримати файл у чат' },
+  ru: { doneTitle: 'Спасибо!', doneSub: 'Нажми кнопку чтобы получить файл в чат' },
+  en: { doneTitle: 'Thank you!', doneSub: 'Tap the button to get the file in chat' },
+}[lang] || { doneTitle: 'Дякуємо!', doneSub: 'Натисни кнопку щоб отримати файл у чат' };
 
 function $(id) { return document.getElementById(id); }
 
 if (!botJobId) {
-  $('screenAd').classList.add('hidden');
+  $('screen1').classList.add('hidden');
   $('screenError').classList.remove('hidden');
 } else {
-  $('adTitle').textContent = T.ready;
-  $('adSub').textContent = T.sub;
-  $('watchBtn').textContent = T.watch;
   $('readyTitle').textContent = T.doneTitle;
   $('readySub').textContent = T.doneSub;
+  // Запускаємо першу рекламу автоматично
+  startAd1();
 }
 
-function watchAd() {
-  $('watchBtn').disabled = true;
-  $('watchBtn').textContent = '⏳ Завантаження…';
-
+function startAd1() {
   show_10863560().then(() => {
-    // Реклама переглянута — показуємо кнопку отримати
-    $('screenAd').classList.add('hidden');
+    // Перша реклама переглянута → показуємо кнопку для другої
+    $('sub1').textContent = '1/2 переглянуто ✅ Натисни для 2/2';
+    $('btn1').disabled = false;
+    $('btn1').textContent = '📣 Реклама 2/2 — отримати рингтон';
+  }).catch(() => {
+    // Якщо не завантажилась — все одно йдемо далі
+    $('sub1').textContent = '1/2 переглянуто ✅ Натисни для 2/2';
+    $('btn1').disabled = false;
+    $('btn1').textContent = '📣 Реклама 2/2 — отримати рингтон';
+  });
+}
+
+function watchAd2() {
+  $('screen1').classList.add('hidden');
+  $('screen2').classList.remove('hidden');
+}
+
+function watchAd2Final() {
+  show_10863560().then(() => {
+    $('screen2').classList.add('hidden');
     $('screenReady').classList.remove('hidden');
   }).catch(() => {
-    // Якщо реклама не завантажилась — все одно даємо файл
-    $('screenAd').classList.add('hidden');
+    $('screen2').classList.add('hidden');
     $('screenReady').classList.remove('hidden');
   });
 }
