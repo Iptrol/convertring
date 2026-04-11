@@ -29,7 +29,7 @@ ASK_MOMENT, ASK_CUSTOM_MOMENT, ASK_NAME, WAIT_NAME_INPUT = range(4)
 
 TEXTS = {
     "uk": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nНадішли будь-що — я зроблю рингтон:\n— Відео з галереї\n— YouTube / TikTok / Instagram\n— Голосове повідомлення\n\nІ я:\n— Виріжу потрібний момент\n— Збережу з твоєю назвою\n\nЗа пару хвилин — унікальний рингтон якого ні в кого немає.",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nНадішли будь-що — зроблю з цього рингтон для твого дзвінку:\n— Відео з галереї\n— YouTube / YouTube Music / TikTok / Instagram\n— Голосове повідомлення\n\nЯ:\n— ✂️ Виріжу потрібний момент\n— 💾 Збережу з твоєю назвою\n\nЗа пару хвилин у тебе унікальний рингтон якого ні в кого немає.",
         "converting": "⏳ Отримую та конвертую...",
         "done": "✅ Готово! Натисни кнопку щоб отримати рингтон 👇",
         "get_btn": "🎵 Отримати рингтон",
@@ -53,7 +53,7 @@ TEXTS = {
         "how_btn": "📖 Як встановити рингтон",
     },
     "ru": {
-        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nОтправь что угодно — я сделаю рингтон:\n— Видео из галереи\n— YouTube / TikTok / Instagram\n— Голосовое сообщение\n\nИ я:\n— Вырежу нужный момент\n— Сохраню с твоим названием\n\nЗа пару минут — уникальный рингтон которого ни у кого нет.",
+        "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nОтправь что угодно — сделаю из этого рингтон для твоего звонка:\n— Видео из галереи\n— YouTube / YouTube Music / TikTok / Instagram\n— Голосовое сообщение\n\nЯ:\n— ✂️ Вырежу нужный момент\n— 💾 Сохраню с твоим названием\n\nЗа пару минут у тебя уникальный рингтон которого ни у кого нет.",
         "converting": "⏳ Загружаю и конвертирую...",
         "done": "✅ Готово! Нажми кнопку чтобы получить рингтон 👇",
         "get_btn": "🎵 Получить рингтон",
@@ -77,7 +77,7 @@ TEXTS = {
         "how_btn": "📖 Как установить рингтон",
     },
     "en": {
-        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nSend me anything — I'll make a ringtone:\n— Video from your gallery\n— YouTube / TikTok / Instagram\n— Voice message\n\nAnd I will:\n— Cut the right moment\n— Save with your name\n\nIn a couple of minutes — a unique ringtone nobody else has.",
+        "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nSend me anything — I'll turn it into a ringtone for your calls:\n— Video from your gallery\n— YouTube / YouTube Music / TikTok / Instagram\n— Voice message\n\nI will:\n— ✂️ Cut the right moment\n— 💾 Save with your name\n\nIn a couple of minutes you'll have a unique ringtone nobody else has.",
         "converting": "⏳ Downloading and converting...",
         "done": "✅ Done! Tap the button to get your ringtone 👇",
         "get_btn": "🎵 Get ringtone",
@@ -391,7 +391,12 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         await q.message.reply_text(t["welcome"], parse_mode="Markdown")
         await q.message.reply_text(t["cta"])
     elif q.data == "nav_how":
-        await q.message.reply_text(t["how_to"], reply_markup=nav_keyboard(lang))
+        await q.message.reply_text(
+            t["how_to"],
+            reply_markup=InlineKeyboardMarkup([[
+                InlineKeyboardButton(t["home_btn"], callback_data="nav_home")
+            ]])
+        )
     elif q.data.startswith("lang_"):
         new_lang = q.data.replace("lang_", "")
         user_lang[user_id] = new_lang
