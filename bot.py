@@ -421,15 +421,6 @@ async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["url"] = text
     ctx.user_data["source"] = get_source_from_url(text)
     return await ask_moment(update, ctx)
-    text = (update.message.text or "").strip()
-    if not is_url(text):
-        lang = get_lang(update.effective_user.id)
-        await update.message.reply_text(TEXTS[lang]["unsupported"])
-        return ConversationHandler.END
-    lang = get_lang(update.effective_user.id)
-    ctx.user_data["url"] = text
-    ctx.user_data["source"] = get_source_from_url(text)
-    return await ask_moment(update, ctx)
 
 async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     file = update.message.video or update.message.document
