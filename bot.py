@@ -31,14 +31,14 @@ TEXTS = {
     "uk": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nНадішли будь-що, зроблю з цього рингтон для твого дзвінку:\n • Відео з галереї\n • YouTube / YouTube Music / TikTok / Instagram\n • Голосове повідомлення\n\nЯ:\n • ✂️ Виріжу потрібний момент\n • 💾 Збережу з твоєю назвою\n\nЗа пару хвилин у тебе унікальний рингтон якого ні в кого немає!",
         "converting": "⏳ Отримую та конвертую...",
-        "done": "✅ Готово! Натисни кнопку щоб отримати рингтон 👇",
+        "done": "🎵 Рингтон готовий!\nНатисни кнопку нижче → переглянь коротку рекламу → і рингтон твій\n\n👇 Кнопка «Отримати рингтон у чат» з'явиться після перегляду.",
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
         "unsupported": "❌ Надішли відео, голосове або посилання на YouTube/YouTube Music/TikTok/Instagram",
         "press_button": "Натисни одну з кнопок вище 👆",
         "sending": "📤 Надсилаю рингтон...",
         "ringtone_caption": "🎵 Ось твій рингтон!\n\nЯк встановити:\n1. Натисни на файл\n2. Тапни «Використовувати як мелодію» в правому нижньому куті\n3. Готово! ✅ Галочка біля рингтону підтверджує що все ок\n\n—\nЯкщо потребуєш допомоги з встановленням, обирай в боті кнопку «Як встановити рингтон»\n\nPS: Ти можеш встановити персональний рингтон на різних абонентів: друга, бесті, родину тощо. Тому не зупиняйся ❤️",
-        "after_ringtone": "Сподобалось? Роби ще! Кожен контакт заслуговує свій рингтон 🎵",
+        "after_ringtone": "Сподобалось? Роби ще! Кожен контакт заслуговує свій рингтон 🎵\nПросто відправ мені новий лінк.",
         "cta": "Кидай відео, лінк або голосове — і почнемо! 🎵",
         "how_to": "📖 Як встановити рингтон:\n1. Натисни на файл\n2. Тапни «Використовувати як мелодію» в правому нижньому куті\n3. Готово! ✅ Галочка біля рингтону підтверджує що все ок\n\n👥 Як поставити різним контактам:\n1. Відкрий потрібний контакт\n2. Натисни «Редагувати»\n3. Обери «Рингтон» і знайди свій файл у списку мелодій\n4. Збережи ✅\n\n💡 Щоб не губитись, давай рингтонам імена при генерації.",
         "ask_moment": "🎵 З якого місця зробити рингтон?",
@@ -56,16 +56,16 @@ TEXTS = {
     "ru": {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nОтправь что угодно, сделаю из этого рингтон для твоего звонка:\n • Видео из галереи\n • YouTube / YouTube Music / TikTok / Instagram\n • Голосовое сообщение\n\nЯ:\n • ✂️ Вырежу нужный момент\n • 💾 Сохраню с твоим названием\n\nЗа пару минут у тебя уникальный рингтон которого ни у кого нет!",
         "converting": "⏳ Загружаю и конвертирую...",
-        "done": "✅ Готово! Нажми кнопку чтобы получить рингтон 👇",
+        "done": "🎵 Рингтон готов!\nНажми кнопку ниже → посмотри короткую рекламу → и рингтон твой\n\n👇 Кнопка «Получить рингтон в чат» появится после просмотра.",
         "get_btn": "🎵 Получить рингтон",
         "error": "❌ Не удалось обработать. Попробуй другое видео или ссылку.",
         "unsupported": "❌ Отправь видео, голосовое или ссылку на YouTube/YouTube Music/TikTok/Instagram",
         "press_button": "Нажми одну из кнопок выше 👆",
         "sending": "📤 Отправляю рингтон...",
         "ringtone_caption": "🎵 Вот твой рингтон!\n\nКак установить:\n1. Нажми на файл\n2. Тапни «Использовать как мелодию» в правом нижнем углу\n3. Готово! ✅ Галочка рядом с рингтоном подтверждает что всё ок\n\n—\nЕсли нужна помощь с установкой, выбирай в боте кнопку «Как установить рингтон»\n\nPS: Ты можешь установить персональный рингтон для разных контактов: друга, подруги, семьи и т.д. Так что не останавливайся ❤️",
-        "after_ringtone": "Понравилось? Делай ещё! Каждый контакт заслуживает свой рингтон 🎵",
+        "after_ringtone": "Понравилось? Делай ещё! Каждый контакт заслуживает свой рингтон 🎵\nПросто отправь мне новую ссылку.",
         "cta": "Кидай видео, ссылку или голосовое — и начнём! 🎵",
-        "how_to": "📖 Как установить рингтон:\n1. Нажми на файл\n2. Тапни «Использовать как мелодию» в правом нижнем углу\n3. Готово! ✅ Галочка рядом с рингтоном подтверждает что всё ок",
+        "how_to": "📖 Как установить рингтон:\n1. Нажми на файл\n2. Тапни «Использовать как мелодию» в правом нижнем углу\n3. Готово! ✅ Галочка рядом с рингтоном подтверждает что всё ок\n\n👥 Как поставить разным контактам:\n1. Открой нужный контакт\n2. Нажми «Редактировать»\n3. Выбери «Рингтон» и найди свой файл в списке мелодий\n4. Сохрани ✅\n\n💡 Чтобы не запутаться, давай рингтонам имена при генерации.",
         "ask_moment": "🎵 С какого места сделать рингтон?",
         "from_start_btn": "▶️ С начала",
         "custom_moment_btn": "✂️ Выбрать момент",
@@ -81,16 +81,16 @@ TEXTS = {
     "en": {
         "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nSend me anything, I'll turn it into a ringtone for your calls:\n • Video from your gallery\n • YouTube / YouTube Music / TikTok / Instagram\n • Voice message\n\nI will:\n • ✂️ Cut the right moment\n • 💾 Save with your name\n\nIn a couple of minutes you'll have a unique ringtone nobody else has!",
         "converting": "⏳ Downloading and converting...",
-        "done": "✅ Done! Tap the button to get your ringtone 👇",
+        "done": "🎵 Ringtone is ready!\nTap the button below → watch a short ad → and the ringtone is yours\n\n👇 The «Get ringtone in chat» button will appear after viewing.",
         "get_btn": "🎵 Get ringtone",
         "error": "❌ Failed to process. Try another video or link.",
         "unsupported": "❌ Send a video, voice message or YouTube/YouTube Music/TikTok/Instagram link",
         "press_button": "Tap one of the buttons above 👆",
         "sending": "📤 Sending ringtone...",
         "ringtone_caption": "🎵 Here's your ringtone!\n\nHow to install:\n1. Tap on the file\n2. Tap «Use as Ringtone» in the bottom right corner\n3. Done! ✅ A checkmark next to the ringtone means everything is set\n\n—\nIf you need help with installation, tap «How to install» in the bot\n\nPS: You can set personal ringtones for different contacts — friends, family, and more. Keep going ❤️",
-        "after_ringtone": "Enjoyed it? Make more! Every contact deserves their own ringtone 🎵",
+        "after_ringtone": "Enjoyed it? Make more! Every contact deserves their own ringtone 🎵\nJust send me a new link.",
         "cta": "Drop a video, link or voice message — let's go! 🎵",
-        "how_to": "📖 How to install the ringtone:\n1. Tap on the file\n2. Tap «Use as Ringtone» in the bottom right corner\n3. Done! ✅ A checkmark next to the ringtone means everything is set",
+        "how_to": "📖 How to install the ringtone:\n1. Tap on the file\n2. Tap «Use as Ringtone» in the bottom right corner\n3. Done! ✅ A checkmark next to the ringtone means everything is set\n\n👥 How to set different ringtones for contacts:\n1. Open the contact\n2. Tap «Edit»\n3. Choose «Ringtone» and find your file in the list\n4. Save ✅\n\n💡 To stay organised, give your ringtones names when generating them.",
         "ask_moment": "🎵 From which part to make the ringtone?",
         "from_start_btn": "▶️ From the beginning",
         "custom_moment_btn": "✂️ Choose moment",
@@ -214,7 +214,9 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
                 await ctx.bot.send_message(
                     chat_id=chat_id,
                     text=t["after_ringtone"],
-                    reply_markup=nav_keyboard(lang)
+                    reply_markup=InlineKeyboardMarkup([[
+                        InlineKeyboardButton(t["how_btn"], callback_data="nav_how")
+                    ]])
                 )
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
