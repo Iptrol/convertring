@@ -259,13 +259,23 @@ function watchAd2() {
 }
 
 function watchAd2Final() {
+  const btn = document.querySelector('#screen2 .btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Завантаження...';
+
   show_10863560().then(() => {
-    $('screen2').classList.add('hidden');
-    $('screenReady').classList.remove('hidden');
+    autoSwitch();
   }).catch(() => {
+    autoSwitch();
+  });
+}
+
+function autoSwitch() {
+  // Автоматично перемикаємо через 4 секунди
+  setTimeout(() => {
     $('screen2').classList.add('hidden');
     $('screenReady').classList.remove('hidden');
-  });
+  }, 4000);
 }
 
 function getFile() {
