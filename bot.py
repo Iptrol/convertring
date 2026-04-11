@@ -24,6 +24,42 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN  = os.getenv("BOT_TOKEN", "YOUR_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projects-6797bf46.vercel.app")
 API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
+ADMIN_ID   = 482920649
+
+# Статистика
+stats = {"success": 0, "errors": 0, "users": set()}
+
+async def notify_admin(bot, text: str):
+    try:
+        await bot.send_message(chat_id=ADMIN_ID, text=text)
+    except Exception as e:
+        logger.error(f"notify_admin error: {e}")
+
+async def send_daily_stats(bot):
+    text = (
+        f"📊 Статистика за сьогодні:\n"
+        f"✅ Успішних конвертацій: {stats['success']}\n"
+        f"❌ Помилок: {stats['errors']}\n"
+        f"👥 Унікальних юзерів: {len(stats['users'])}"
+    )
+    await notify_admin(bot, text)
+    # Скидаємо статистику
+    stats["success"] = 0
+    stats["errors"] = 0
+    stats["users"] = set()
+
+async def schedule_daily_stats(app):
+    while True:
+        now = asyncio.get_event_loop().time()
+        # Чекаємо до наступної 20:00
+        import datetime
+        now_dt = datetime.datetime.now()
+        target = now_dt.replace(hour=20, minute=0, second=0, microsecond=0)
+        if now_dt >= target:
+            target += datetime.timedelta(days=1)
+        wait_sec = (target - now_dt).total_seconds()
+        await asyncio.sleep(wait_sec)
+        await send_daily_stats(app.bot)
 
 ASK_MOMENT, ASK_CUSTOM_MOMENT, ASK_NAME, WAIT_NAME_INPUT = range(4)
 
@@ -257,11 +293,14 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
 
         ok = await poll_job(job_id)
         if not ok:
+            stats["errors"] += 1
+            await notify_admin(bot, f"⚠️ Конвертація не вдалась\nЮзер ID: {user_data.get('user_id', '?')}\nДжерело: {source}")
             return False, None
 
         if ctx is not None:
             ctx.user_data[f"source_{job_id}"] = source
             ctx.user_data[f"name_{job_id}"] = custom_name
+            stats["success"] += 1
 
         await bot.send_message(
             chat_id=chat_id,
@@ -271,6 +310,8 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
         return True, job_id
     except Exception as e:
         logger.error(f"do_convert error: {e}")
+        stats["errors"] += 1
+        await notify_admin(bot, f"⚠️ Помилка конвертації\nДжерело: {source}\n{str(e)[:100]}")
         return False, None
 
 async def ask_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -405,6 +446,7 @@ async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data.clear()
     user_id = update.effective_user.id
+    stats["users"].add(user_id)
     lang = user_lang.get(user_id)
     if lang:
         await update.message.reply_text(
@@ -535,6 +577,7 @@ def main():
     app.add_handler(CallbackQueryHandler(on_callback))
 
     logger.info("✅ ConvertRing bot running...")
+    asyncio.get_event_loop().create_task(schedule_daily_stats(app))
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
