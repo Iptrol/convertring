@@ -484,9 +484,9 @@ async def on_callback(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         user_lang[user_id] = new_lang
         await q.edit_message_text(
             TEXTS[new_lang]["welcome"],
-            parse_mode="Markdown",
-            reply_markup=nav_keyboard(new_lang)
+            parse_mode="Markdown"
         )
+        await q.message.reply_text(TEXTS[new_lang]["cta"])
     elif q.data == "change_lang":
         await q.edit_message_text(
             "Оберіть мову / Выберите язык / Choose language:",
