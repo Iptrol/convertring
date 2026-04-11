@@ -209,14 +209,13 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
                     document=r.content,
                     filename=filename,
                     caption=t["ringtone_caption"],
-                    reply_markup=ReplyKeyboardRemove()
-                )
-                await ctx.bot.send_message(
-                    chat_id=chat_id,
-                    text=t["after_ringtone"],
                     reply_markup=InlineKeyboardMarkup([[
                         InlineKeyboardButton(t["how_btn"], callback_data="nav_how")
                     ]])
+                )
+                await ctx.bot.send_message(
+                    chat_id=chat_id,
+                    text=t["after_ringtone"]
                 )
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
