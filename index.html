@@ -162,24 +162,21 @@
       <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
       <div class="ad-icon pulsing">🎵</div>
       <div class="ad-title">Твій рингтон готовий!</div>
-      <div class="ad-sub" id="sub1">Завантажуємо рекламу 1/2...</div>
+      <div class="ad-sub" id="sub1">Закрий рекламу хрестиком щоб продовжити ✕</div>
       <button class="btn btn-primary" id="btn1" disabled onclick="watchAd2()">
-        ⏳ Зачекайте...
+        ⏳ Завантажуємо рекламу...
       </button>
     </div>
   </div>
 
-  <!-- SCREEN: Реклама 2/2 -->
+  <!-- SCREEN: Реклама 2/2 (автоматична) -->
   <div class="screen hidden" id="screen2">
     <div class="ad-card">
       <div class="counter">📣 Реклама 2 з 2</div>
       <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
-      <div class="ad-icon">✅</div>
-      <div class="ad-title">Майже готово!</div>
-      <div class="ad-sub">Залишилась остання реклама</div>
-      <button class="btn btn-primary" onclick="watchAd2Final()">
-        📣 Переглянути рекламу 2/2
-      </button>
+      <div class="ad-icon">⏳</div>
+      <div class="ad-title">Остання реклама...</div>
+      <div class="ad-sub">Закрий рекламу хрестиком щоб отримати рингтон ✕</div>
     </div>
   </div>
 
@@ -241,28 +238,35 @@ if (!botJobId) {
 
 function startAd1() {
   show_10863560().then(() => {
-    // Перша реклама переглянута → показуємо кнопку для другої
-    $('sub1').textContent = '1/2 переглянуто ✅ Натисни для 2/2';
-    $('btn1').disabled = false;
-    $('btn1').textContent = '📣 Реклама 2/2 — отримати рингтон';
+    // Перша реклама закрита → одразу запускаємо другу
+    $('screen1').classList.add('hidden');
+    $('screen2').classList.remove('hidden');
+    startAd2();
   }).catch(() => {
-    // Якщо не завантажилась — все одно йдемо далі
-    $('sub1').textContent = '1/2 переглянуто ✅ Натисни для 2/2';
-    $('btn1').disabled = false;
-    $('btn1').textContent = '📣 Реклама 2/2 — отримати рингтон';
+    $('screen1').classList.add('hidden');
+    $('screen2').classList.remove('hidden');
+    startAd2();
   });
 }
 
 function watchAd2() {
-  $('screen1').classList.add('hidden');
-  $('screen2').classList.remove('hidden');
+  // Залишаємо для сумісності — не використовується
+}
+
+function startAd2() {
+  show_10863560().then(() => {
+    autoSwitch();
+  }).catch(() => {
+    autoSwitch();
+  });
 }
 
 function watchAd2Final() {
   const btn = document.querySelector('#screen2 .btn');
-  btn.disabled = true;
-  btn.textContent = '⏳ Завантаження...';
-
+  if (btn) {
+    btn.disabled = true;
+    btn.textContent = '⏳ Завантаження...';
+  }
   show_10863560().then(() => {
     autoSwitch();
   }).catch(() => {
@@ -271,7 +275,6 @@ function watchAd2Final() {
 }
 
 function autoSwitch() {
-  // Автоматично перемикаємо через 4 секунди
   setTimeout(() => {
     $('screen2').classList.add('hidden');
     $('screenReady').classList.remove('hidden');
