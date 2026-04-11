@@ -237,7 +237,7 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
     t = TEXTS[lang]
     filename = make_filename(source, job_id, custom_name)
     try:
-        async with httpx.AsyncClient(timeout=30) as client:
+        async with httpx.AsyncClient(timeout=120) as client:
             r = await client.get(f"{API_BASE}/download/{job_id}")
             if r.status_code == 200:
                 await ctx.bot.send_document(
