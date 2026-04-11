@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>ConvertRing</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!-- Monetag SDK -->
+<script src='//libtl.com/sdk.js' data-zone='10863560' data-sdk='show_10863560'></script>
 <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
@@ -71,8 +73,6 @@
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
   }
-
-  /* Ad box */
   .ad-card {
     width: 100%;
     background: var(--card);
@@ -90,38 +90,8 @@
   .ad-sub {
     font-size: 13px;
     color: var(--muted);
-    margin-bottom: 16px;
+    margin-bottom: 20px;
   }
-  .ad-timer {
-    font-family: 'Syne', sans-serif;
-    font-size: 56px;
-    font-weight: 800;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    line-height: 1;
-    margin-bottom: 4px;
-  }
-  .ad-unit {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 16px;
-  }
-  .ad-container {
-    background: var(--surface);
-    border-radius: 12px;
-    min-height: 100px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--muted);
-    font-size: 13px;
-    margin-bottom: 16px;
-    border: 1px solid var(--border);
-    overflow: hidden;
-  }
-
-  /* Button */
   .btn {
     width: 100%;
     padding: 16px;
@@ -145,22 +115,11 @@
     color: white;
     box-shadow: 0 4px 20px rgba(34,197,94,0.3);
   }
-
-  /* Screens */
   .screen { width: 100%; display: flex; flex-direction: column; gap: 16px; }
   .hidden { display: none !important; }
-
-  /* Success */
-  .success-icon { font-size: 64px; text-align: center; }
-  .success-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 24px; font-weight: 800;
-    text-align: center;
-  }
-  .success-sub { font-size: 14px; color: var(--muted); text-align: center; }
-
   @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.6} }
   .pulsing { animation: pulse 1.5s ease infinite; }
+  .ad-icon { font-size: 56px; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -174,20 +133,28 @@
   <!-- SCREEN: Ad -->
   <div class="screen" id="screenAd">
     <div class="ad-card">
-      <div class="ad-title">🎵 Твій рингтон готовий!</div>
-      <div class="ad-sub">Перегляньте рекламу щоб отримати файл</div>
-      <div class="ad-timer pulsing" id="adTimer">15</div>
-      <div class="ad-unit">секунд</div>
-      <div class="ad-container" id="adContainer">
-        <span>📣 Реклама завантажується…</span>
-      </div>
-      <button class="btn btn-primary" id="getBtn" disabled onclick="getFile()">
-        Зачекайте…
+      <div class="ad-icon pulsing" id="adIcon">🎵</div>
+      <div class="ad-title" id="adTitle">Твій рингтон готовий!</div>
+      <div class="ad-sub" id="adSub">Перегляньте рекламу щоб отримати файл</div>
+      <button class="btn btn-primary" id="watchBtn" onclick="watchAd()">
+        📣 Переглянути рекламу
       </button>
     </div>
   </div>
 
-  <!-- SCREEN: Error (no job_id) -->
+  <!-- SCREEN: Ready to get -->
+  <div class="screen hidden" id="screenReady">
+    <div class="ad-card">
+      <div class="ad-icon">✅</div>
+      <div class="ad-title" id="readyTitle">Дякуємо! Забирай рингтон</div>
+      <div class="ad-sub" id="readySub">Натисни кнопку щоб отримати файл у чат</div>
+      <button class="btn btn-green" onclick="getFile()">
+        🎵 Отримати рингтон у чат
+      </button>
+    </div>
+  </div>
+
+  <!-- SCREEN: Error -->
   <div class="screen hidden" id="screenError">
     <div class="ad-card" style="text-align:center">
       <div style="font-size:48px;margin-bottom:12px">❌</div>
@@ -199,9 +166,6 @@
 </div>
 
 <script>
-const MONETAG_ZONE = 'YOUR_MONETAG_ZONE_ID';
-const AD_SECONDS = 15;
-
 const tg = window.Telegram?.WebApp;
 if (tg) {
   tg.ready();
@@ -214,13 +178,38 @@ const urlParams = new URLSearchParams(location.search);
 const botJobId = urlParams.get('job_id');
 const lang = urlParams.get('lang') || 'uk';
 
-// Тексти
 const T = {
-  uk: { wait: 'Зачекайте…', get: '🎵 Отримати рингтон у чат', ready: 'Твій рингтон готовий!', sub: 'Перегляньте рекламу щоб отримати файл', adLoad: '📣 Реклама завантажується…', unit: 'секунд' },
-  ru: { wait: 'Подождите…', get: '🎵 Получить рингтон в чат', ready: 'Твой рингтон готов!', sub: 'Посмотрите рекламу чтобы получить файл', adLoad: '📣 Загрузка рекламы…', unit: 'секунд' },
-  en: { wait: 'Please wait…', get: '🎵 Get ringtone in chat', ready: 'Your ringtone is ready!', sub: 'Watch an ad to get your file', adLoad: '📣 Loading ad…', unit: 'seconds' },
+  uk: {
+    ready: 'Твій рингтон готовий!',
+    sub: 'Перегляньте рекламу щоб отримати файл',
+    watch: '📣 Переглянути рекламу',
+    doneTitle: 'Дякуємо! Забирай рингтон',
+    doneSub: 'Натисни кнопку щоб отримати файл у чат',
+    get: '🎵 Отримати рингтон у чат',
+  },
+  ru: {
+    ready: 'Твой рингтон готов!',
+    sub: 'Посмотрите рекламу чтобы получить файл',
+    watch: '📣 Посмотреть рекламу',
+    doneTitle: 'Спасибо! Забирай рингтон',
+    doneSub: 'Нажми кнопку чтобы получить файл в чат',
+    get: '🎵 Получить рингтон в чат',
+  },
+  en: {
+    ready: 'Your ringtone is ready!',
+    sub: 'Watch an ad to get your file',
+    watch: '📣 Watch ad',
+    doneTitle: 'Thanks! Get your ringtone',
+    doneSub: 'Tap the button to get the file in chat',
+    get: '🎵 Get ringtone in chat',
+  },
 }[lang] || {
-  wait: 'Зачекайте…', get: '🎵 Отримати рингтон у чат', ready: 'Твій рингтон готовий!', sub: 'Перегляньте рекламу щоб отримати файл', adLoad: '📣 Реклама завантажується…', unit: 'секунд'
+  ready: 'Твій рингтон готовий!',
+  sub: 'Перегляньте рекламу щоб отримати файл',
+  watch: '📣 Переглянути рекламу',
+  doneTitle: 'Дякуємо! Забирай рингтон',
+  doneSub: 'Натисни кнопку щоб отримати файл у чат',
+  get: '🎵 Отримати рингтон у чат',
 };
 
 function $(id) { return document.getElementById(id); }
@@ -229,48 +218,26 @@ if (!botJobId) {
   $('screenAd').classList.add('hidden');
   $('screenError').classList.remove('hidden');
 } else {
-  // Застосовуємо тексти
-  document.querySelector('.ad-title').textContent = '🎵 ' + T.ready;
-  document.querySelector('.ad-sub').textContent = T.sub;
-  document.querySelector('.ad-unit').textContent = T.unit;
-  $('getBtn').textContent = T.wait;
-  $('adContainer').innerHTML = `<span>${T.adLoad}</span>`;
-
-  // Запускаємо рекламу і таймер
-  loadAd();
-  startTimer();
+  $('adTitle').textContent = T.ready;
+  $('adSub').textContent = T.sub;
+  $('watchBtn').textContent = T.watch;
+  $('readyTitle').textContent = T.doneTitle;
+  $('readySub').textContent = T.doneSub;
 }
 
-function loadAd() {
-  const container = $('adContainer');
-  container.innerHTML = '';
-  const script = document.createElement('script');
-  script.setAttribute('data-cfasync', 'false');
-  script.src = `//ophoacit.com/1?z=${MONETAG_ZONE}`;
-  script.async = true;
-  container.appendChild(script);
-  setTimeout(() => {
-    if (container.children.length <= 1) {
-      container.innerHTML = '<div style="padding:20px;color:#6b6b8a;font-size:13px">📣 Реклама завантажується…</div>';
-    }
-  }, 3000);
-}
+function watchAd() {
+  $('watchBtn').disabled = true;
+  $('watchBtn').textContent = '⏳ Завантаження…';
 
-function startTimer() {
-  let left = AD_SECONDS;
-  $('adTimer').textContent = left;
-  const interval = setInterval(() => {
-    left--;
-    $('adTimer').textContent = left;
-    if (left <= 0) {
-      clearInterval(interval);
-      $('adTimer').classList.remove('pulsing');
-      $('adTimer').textContent = '✅';
-      $('getBtn').disabled = false;
-      $('getBtn').textContent = T.get;
-      $('getBtn').className = 'btn btn-green';
-    }
-  }, 1000);
+  show_10863560().then(() => {
+    // Реклама переглянута — показуємо кнопку отримати
+    $('screenAd').classList.add('hidden');
+    $('screenReady').classList.remove('hidden');
+  }).catch(() => {
+    // Якщо реклама не завантажилась — все одно даємо файл
+    $('screenAd').classList.add('hidden');
+    $('screenReady').classList.remove('hidden');
+  });
 }
 
 function getFile() {
