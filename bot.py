@@ -249,9 +249,11 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
                         InlineKeyboardButton(t["how_btn"], callback_data="nav_how")
                     ]])
                 )
+                # Прибираємо ReplyKeyboard окремим повідомленням
                 await ctx.bot.send_message(
                     chat_id=chat_id,
-                    text=t["after_ringtone"]
+                    text=t["after_ringtone"],
+                    reply_markup=ReplyKeyboardRemove()
                 )
     except Exception as e:
         logger.error(f"send_ringtone error: {e}")
