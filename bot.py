@@ -507,6 +507,15 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     if not voice:
         return
     lang = get_lang(update.effective_user.id)
+
+    # Якщо голосове довше 30 сек — питаємо момент і назву як для відео
+    if voice.duration and voice.duration > 30:
+        ctx.user_data["file_id"] = voice.file_id
+        ctx.user_data["suffix"] = ".ogg"
+        ctx.user_data["source"] = "voice"
+        return await ask_moment(update, ctx)
+
+    # Якщо коротше 30 сек — одразу конвертуємо
     t = TEXTS[lang]
     msg = await update.message.reply_text(t["converting"])
     try:
@@ -541,6 +550,7 @@ def main():
         entry_points=[
             MessageHandler(filters.TEXT & ~filters.COMMAND, url_received),
             MessageHandler(filters.VIDEO | filters.Document.VIDEO, on_video),
+            MessageHandler(filters.VOICE | filters.AUDIO, on_voice),
         ],
         states={
             ASK_MOMENT: [
@@ -565,7 +575,6 @@ def main():
 
     app.add_handler(CommandHandler("start", cmd_start))
     app.add_handler(MessageHandler(filters.StatusUpdate.WEB_APP_DATA, on_web_app_data))
-    app.add_handler(MessageHandler(filters.VOICE | filters.AUDIO, on_voice))
     app.add_handler(conv)
     app.add_handler(CallbackQueryHandler(on_callback))
 
