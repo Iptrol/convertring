@@ -52,11 +52,7 @@
     align-items: center;
     gap: 20px;
   }
-  .logo {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
+  .logo { display: flex; align-items: center; gap: 10px; }
   .logo-icon {
     width: 44px; height: 44px;
     background: linear-gradient(135deg, var(--accent), var(--accent2));
@@ -92,54 +88,15 @@
     margin-bottom: 16px;
   }
   .ad-icon { font-size: 48px; margin-bottom: 12px; }
-  .ad-title {
-    font-family: 'Syne', sans-serif;
-    font-size: 18px;
-    font-weight: 700;
-    margin-bottom: 6px;
-  }
-  .ad-sub {
-    font-size: 13px;
-    color: var(--muted);
-    margin-bottom: 20px;
-  }
-  .progress-bar {
-    width: 100%;
-    height: 4px;
-    background: var(--border);
-    border-radius: 2px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-  .progress-fill {
-    height: 100%;
-    border-radius: 2px;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    transition: width 0.4s ease;
-  }
-  .btn {
-    width: 100%;
-    padding: 16px;
-    border-radius: 14px;
-    border: none;
-    font-family: 'Syne', sans-serif;
-    font-size: 17px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s ease;
-  }
-  .btn-primary {
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    color: white;
-    box-shadow: 0 4px 20px rgba(124,106,255,0.35);
-  }
+  .ad-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
+  .ad-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
+  .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
+  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 20px rgba(124,106,255,0.35); }
   .btn-primary:active { transform: scale(0.98); }
   .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
-  .btn-green {
-    background: linear-gradient(135deg, #22c55e, #16a34a);
-    color: white;
-    box-shadow: 0 4px 20px rgba(34,197,94,0.3);
-  }
+  .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 4px 20px rgba(34,197,94,0.3); }
   .btn-green:active { transform: scale(0.98); }
   .screen { width: 100%; display: flex; flex-direction: column; gap: 16px; }
   .hidden { display: none !important; }
@@ -162,10 +119,7 @@
       <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
       <div class="ad-icon pulsing">🎵</div>
       <div class="ad-title">Твій рингтон готовий!</div>
-      <div class="ad-sub" id="sub1">Зачекай секунду...</div>
-      <button class="btn btn-primary" id="btn1" disabled>
-        ⏳ Завантажуємо рекламу...
-      </button>
+      <div class="ad-sub">Зачекай секунду...</div>
     </div>
   </div>
 
@@ -235,6 +189,15 @@ if (!botJobId) {
   startAd1();
 }
 
+const inAppSettings = { type: 'inApp', inAppSettings: { frequency: 1, capping: 0.1, interval: 5, timeout: 3, everyPage: false } };
+
+function tryAd() {
+  // Спочатку Popup, якщо не вийде — In-app
+  return show_10863560('pop').catch(() => {
+    return show_10863560(inAppSettings).catch(() => {});
+  });
+}
+
 function startAd1() {
   const fallback1 = setTimeout(() => {
     $('screen1').classList.add('hidden');
@@ -242,7 +205,7 @@ function startAd1() {
     startAd2();
   }, 10000);
 
-  show_10863560('pop').then(() => {
+  tryAd().then(() => {
     clearTimeout(fallback1);
     $('screen1').classList.add('hidden');
     $('screen2').classList.remove('hidden');
@@ -260,7 +223,7 @@ function startAd2() {
     autoSwitch();
   }, 10000);
 
-  show_10863560('pop').then(() => {
+  tryAd().then(() => {
     clearTimeout(fallback2);
     autoSwitch();
   }).catch(() => {
