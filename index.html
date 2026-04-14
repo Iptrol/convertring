@@ -155,28 +155,28 @@
     <div class="logo-text">ConvertRing</div>
   </div>
 
-  <!-- SCREEN: Реклама 1/2 (автоматична) -->
+  <!-- SCREEN: Реклама 1/2 -->
   <div class="screen" id="screen1">
     <div class="ad-card">
       <div class="counter">📣 Реклама 1 з 2</div>
       <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
       <div class="ad-icon pulsing">🎵</div>
       <div class="ad-title">Твій рингтон готовий!</div>
-      <div class="ad-sub" id="sub1">Закрий рекламу хрестиком щоб продовжити ✕</div>
-      <button class="btn btn-primary" id="btn1" disabled onclick="watchAd2()">
+      <div class="ad-sub" id="sub1">Зачекай секунду...</div>
+      <button class="btn btn-primary" id="btn1" disabled>
         ⏳ Завантажуємо рекламу...
       </button>
     </div>
   </div>
 
-  <!-- SCREEN: Реклама 2/2 (автоматична) -->
+  <!-- SCREEN: Реклама 2/2 -->
   <div class="screen hidden" id="screen2">
     <div class="ad-card">
       <div class="counter">📣 Реклама 2 з 2</div>
       <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
       <div class="ad-icon">⏳</div>
       <div class="ad-title">Остання реклама...</div>
-      <div class="ad-sub">Закрий рекламу хрестиком щоб отримати рингтон ✕</div>
+      <div class="ad-sub">Зачекай секунду...</div>
     </div>
   </div>
 
@@ -232,7 +232,6 @@ if (!botJobId) {
 } else {
   $('readyTitle').textContent = T.doneTitle;
   $('readySub').textContent = T.doneSub;
-  // Запускаємо першу рекламу автоматично
   startAd1();
 }
 
@@ -243,7 +242,7 @@ function startAd1() {
     startAd2();
   }, 10000);
 
-  show_10863560().then(() => {
+  show_10863560('pop').then(() => {
     clearTimeout(fallback1);
     $('screen1').classList.add('hidden');
     $('screen2').classList.remove('hidden');
@@ -254,10 +253,6 @@ function startAd1() {
     $('screen2').classList.remove('hidden');
     startAd2();
   });
-}
-
-function watchAd2() {
-  // Залишаємо для сумісності — не використовується
 }
 
 function startAd2() {
@@ -265,24 +260,11 @@ function startAd2() {
     autoSwitch();
   }, 10000);
 
-  show_10863560().then(() => {
+  show_10863560('pop').then(() => {
     clearTimeout(fallback2);
     autoSwitch();
   }).catch(() => {
     clearTimeout(fallback2);
-    autoSwitch();
-  });
-}
-
-function watchAd2Final() {
-  const btn = document.querySelector('#screen2 .btn');
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = '⏳ Завантаження...';
-  }
-  show_10863560().then(() => {
-    autoSwitch();
-  }).catch(() => {
     autoSwitch();
   });
 }
