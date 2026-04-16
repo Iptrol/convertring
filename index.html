@@ -15,7 +15,6 @@
     --border: #2a2a3a;
     --accent: #7c6aff;
     --accent2: #ff6a9a;
-    --green: #4ade80;
     --text: #f0f0ff;
     --muted: #6b6b8a;
     --radius: 16px;
@@ -89,13 +88,24 @@
   }
   .ad-icon { font-size: 48px; margin-bottom: 12px; }
   .ad-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  .ad-sub { font-size: 13px; color: var(--muted); margin-bottom: 20px; }
+  .ad-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
   .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
   .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
+  .timer-circle {
+    width: 56px; height: 56px;
+    border-radius: 50%;
+    background: rgba(124,106,255,0.15);
+    border: 2px solid var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--accent);
+    margin: 0 auto 16px;
+  }
   .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
   .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 20px rgba(124,106,255,0.35); }
   .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
   .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 4px 20px rgba(34,197,94,0.3); }
   .btn-green:active { transform: scale(0.98); }
   .screen { width: 100%; display: flex; flex-direction: column; gap: 16px; }
@@ -119,7 +129,11 @@
       <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
       <div class="ad-icon pulsing">🎵</div>
       <div class="ad-title">Твій рингтон готовий!</div>
-      <div class="ad-sub">Зачекай секунду...</div>
+      <div class="ad-sub">Дивись рекламу — і рингтон твій</div>
+      <div class="timer-circle" id="timer1">7</div>
+      <button class="btn btn-primary" id="btn1" disabled onclick="goToAd2()">
+        Далі →
+      </button>
     </div>
   </div>
 
@@ -130,7 +144,11 @@
       <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
       <div class="ad-icon">⏳</div>
       <div class="ad-title">Остання реклама...</div>
-      <div class="ad-sub">Зачекай секунду...</div>
+      <div class="ad-sub">Ще трохи — і рингтон твій!</div>
+      <div class="timer-circle" id="timer2">7</div>
+      <button class="btn btn-primary" id="btn2" disabled onclick="goToReady()">
+        Далі →
+      </button>
     </div>
   </div>
 
@@ -186,57 +204,48 @@ if (!botJobId) {
 } else {
   $('readyTitle').textContent = T.doneTitle;
   $('readySub').textContent = T.doneSub;
-  startAd1();
+  startScreen1();
 }
 
-const inAppSettings = { type: 'inApp', inAppSettings: { frequency: 1, capping: 0.1, interval: 5, timeout: 3, everyPage: false } };
+const inAppSettings = {
+  type: 'inApp',
+  inAppSettings: { frequency: 2, capping: 0.1, interval: 5, timeout: 3, everyPage: false }
+};
 
-function tryAd() {
-  // Спочатку Popup, якщо не вийде — In-app
-  return show_10863560('pop').catch(() => {
-    return show_10863560(inAppSettings).catch(() => {});
-  });
+function startTimer(timerId, btnId, seconds, callback) {
+  let left = seconds;
+  $(timerId).textContent = left;
+  const interval = setInterval(() => {
+    left--;
+    $(timerId).textContent = left;
+    if (left <= 0) {
+      clearInterval(interval);
+      $(timerId).textContent = '✓';
+      $(btnId).disabled = false;
+      if (callback) callback();
+    }
+  }, 1000);
 }
 
-function startAd1() {
-  const fallback1 = setTimeout(() => {
-    $('screen1').classList.add('hidden');
-    $('screen2').classList.remove('hidden');
-    startAd2();
-  }, 10000);
-
-  tryAd().then(() => {
-    clearTimeout(fallback1);
-    $('screen1').classList.add('hidden');
-    $('screen2').classList.remove('hidden');
-    startAd2();
-  }).catch(() => {
-    clearTimeout(fallback1);
-    $('screen1').classList.add('hidden');
-    $('screen2').classList.remove('hidden');
-    startAd2();
-  });
+function startScreen1() {
+  // Запускаємо In-app рекламу
+  show_10863560(inAppSettings);
+  // Таймер 7 сек — потім кнопка активується
+  startTimer('timer1', 'btn1', 7);
 }
 
-function startAd2() {
-  const fallback2 = setTimeout(() => {
-    autoSwitch();
-  }, 10000);
-
-  tryAd().then(() => {
-    clearTimeout(fallback2);
-    autoSwitch();
-  }).catch(() => {
-    clearTimeout(fallback2);
-    autoSwitch();
-  });
+function goToAd2() {
+  $('screen1').classList.add('hidden');
+  $('screen2').classList.remove('hidden');
+  // Запускаємо другу In-app рекламу
+  show_10863560(inAppSettings);
+  // Таймер 7 сек — потім кнопка активується
+  startTimer('timer2', 'btn2', 7);
 }
 
-function autoSwitch() {
-  setTimeout(() => {
-    $('screen2').classList.add('hidden');
-    $('screenReady').classList.remove('hidden');
-  }, 4000);
+function goToReady() {
+  $('screen2').classList.add('hidden');
+  $('screenReady').classList.remove('hidden');
 }
 
 function getFile() {
