@@ -1,259 +1,601 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>ConvertRing</title>
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src='//libtl.com/sdk.js' data-zone='10863560' data-sdk='show_10863560'></script>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg: #0a0a0f;
-    --surface: #13131a;
-    --card: #1a1a24;
-    --border: #2a2a3a;
-    --accent: #7c6aff;
-    --accent2: #ff6a9a;
-    --text: #f0f0ff;
-    --muted: #6b6b8a;
-    --radius: 16px;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px 16px;
-  }
-  body::before {
-    content: '';
-    position: fixed;
-    top: -50%; left: -50%;
-    width: 200%; height: 200%;
-    background: radial-gradient(ellipse at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 50%),
-                radial-gradient(ellipse at 80% 80%, rgba(255,106,154,0.06) 0%, transparent 50%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  .wrap {
-    position: relative;
-    z-index: 1;
-    width: 100%;
-    max-width: 400px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 20px;
-  }
-  .logo { display: flex; align-items: center; gap: 10px; }
-  .logo-icon {
-    width: 44px; height: 44px;
-    background: linear-gradient(135deg, var(--accent), var(--accent2));
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 22px;
-    box-shadow: 0 4px 20px rgba(124,106,255,0.4);
-  }
-  .logo-text {
-    font-family: 'Syne', sans-serif;
-    font-size: 26px; font-weight: 800;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-  }
-  .ad-card {
-    width: 100%;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 24px 20px;
-    text-align: center;
-  }
-  .counter {
-    display: inline-block;
-    background: rgba(124,106,255,0.15);
-    border: 1px solid rgba(124,106,255,0.3);
-    border-radius: 20px;
-    padding: 4px 14px;
-    font-size: 13px;
-    font-weight: 500;
-    color: var(--accent);
-    margin-bottom: 16px;
-  }
-  .ad-icon { font-size: 48px; margin-bottom: 12px; }
-  .ad-title { font-family: 'Syne', sans-serif; font-size: 18px; font-weight: 700; margin-bottom: 6px; }
-  .ad-sub { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
-  .progress-bar { width: 100%; height: 4px; background: var(--border); border-radius: 2px; margin-bottom: 20px; overflow: hidden; }
-  .progress-fill { height: 100%; border-radius: 2px; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width 0.4s ease; }
-  .timer-circle {
-    width: 56px; height: 56px;
-    border-radius: 50%;
-    background: rgba(124,106,255,0.15);
-    border: 2px solid var(--accent);
-    display: flex; align-items: center; justify-content: center;
-    font-family: 'Syne', sans-serif;
-    font-size: 22px; font-weight: 800;
-    color: var(--accent);
-    margin: 0 auto 16px;
-  }
-  .btn { width: 100%; padding: 16px; border-radius: 14px; border: none; font-family: 'Syne', sans-serif; font-size: 17px; font-weight: 700; cursor: pointer; transition: all 0.2s ease; }
-  .btn-primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; box-shadow: 0 4px 20px rgba(124,106,255,0.35); }
-  .btn-primary:active { transform: scale(0.98); }
-  .btn-primary:disabled { opacity: 0.35; cursor: not-allowed; transform: none; }
-  .btn-green { background: linear-gradient(135deg, #22c55e, #16a34a); color: white; box-shadow: 0 4px 20px rgba(34,197,94,0.3); }
-  .btn-green:active { transform: scale(0.98); }
-  .screen { width: 100%; display: flex; flex-direction: column; gap: 16px; }
-  .hidden { display: none !important; }
-  @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.6} }
-  .pulsing { animation: pulse 1.5s ease infinite; }
-</style>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+  >
+  <title>ConvertRing</title>
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <script
+    src="https://libtl.com/sdk.js"
+    data-zone="10863560"
+    data-sdk="show_10863560"
+  ></script>
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@300;400;500&display=swap"
+    rel="stylesheet"
+  >
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --card: #1a1a24;
+      --border: #2a2a3a;
+      --accent: #7c6aff;
+      --accent2: #ff6a9a;
+      --text: #f0f0ff;
+      --muted: #6b6b8a;
+      --radius: 16px;
+      --success: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background:
+        radial-gradient(ellipse at 20% 20%, rgba(124,106,255,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 80%, rgba(255,106,154,0.06) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrap {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-icon {
+      width: 44px;
+      height: 44px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 22px;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.4);
+    }
+
+    .logo-text {
+      font-family: 'Syne', sans-serif;
+      font-size: 26px;
+      font-weight: 800;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .screen {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .ad-card {
+      width: 100%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px 20px;
+      text-align: center;
+    }
+
+    .counter {
+      display: inline-block;
+      background: rgba(124,106,255,0.15);
+      border: 1px solid rgba(124,106,255,0.3);
+      border-radius: 20px;
+      padding: 4px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--accent);
+      margin-bottom: 16px;
+    }
+
+    .counter-success {
+      background: rgba(34,197,94,0.15);
+      border-color: rgba(34,197,94,0.3);
+      color: var(--success);
+    }
+
+    .counter-error {
+      background: rgba(239,68,68,0.15);
+      border-color: rgba(239,68,68,0.3);
+      color: var(--danger);
+    }
+
+    .ad-icon {
+      font-size: 48px;
+      margin-bottom: 12px;
+    }
+
+    .ad-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .ad-sub {
+      font-size: 13px;
+      color: var(--muted);
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    .progress-bar {
+      width: 100%;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      margin-bottom: 20px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      transition: width 0.4s ease;
+    }
+
+    .timer-circle {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: rgba(124,106,255,0.15);
+      border: 2px solid var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--accent);
+      margin: 0 auto 16px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: none;
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: white;
+      box-shadow: 0 4px 20px rgba(124,106,255,0.35);
+    }
+
+    .btn-primary:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .btn-green {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: white;
+      box-shadow: 0 4px 20px rgba(34,197,94,0.3);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-top: 10px;
+    }
+
+    .debug-box {
+      margin-top: 14px;
+      padding: 12px;
+      border-radius: 12px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      text-align: left;
+      font-size: 12px;
+      color: var(--muted);
+      word-break: break-word;
+      line-height: 1.45;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.6; }
+    }
+
+    .pulsing {
+      animation: pulse 1.5s ease infinite;
+    }
+  </style>
 </head>
 <body>
-<div class="wrap">
+  <div class="wrap">
+    <div class="logo">
+      <div class="logo-icon">✂️</div>
+      <div class="logo-text">ConvertRing</div>
+    </div>
 
-  <div class="logo">
-    <div class="logo-icon">✂️</div>
-    <div class="logo-text">ConvertRing</div>
-  </div>
+    <!-- SCREEN 1 -->
+    <div class="screen" id="screen1">
+      <div class="ad-card">
+        <div class="counter">📣 Реклама 1 з 2</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="ad-icon pulsing">🎵</div>
+        <div class="ad-title">Твій рингтон готовий!</div>
+        <div class="ad-sub">Дивись рекламу — і рингтон твій</div>
+        <div class="timer-circle" id="timer1">7</div>
+        <button class="btn btn-primary" id="btn1" disabled>
+          Далі →
+        </button>
+      </div>
+    </div>
 
-  <!-- SCREEN: Реклама 1/2 -->
-  <div class="screen" id="screen1">
-    <div class="ad-card">
-      <div class="counter">📣 Реклама 1 з 2</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
-      <div class="ad-icon pulsing">🎵</div>
-      <div class="ad-title">Твій рингтон готовий!</div>
-      <div class="ad-sub">Дивись рекламу — і рингтон твій</div>
-      <div class="timer-circle" id="timer1">7</div>
-      <button class="btn btn-primary" id="btn1" disabled onclick="goToAd2()">
-        Далі →
-      </button>
+    <!-- SCREEN 2 -->
+    <div class="screen hidden" id="screen2">
+      <div class="ad-card">
+        <div class="counter">📣 Реклама 2 з 2</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 50%"></div>
+        </div>
+        <div class="ad-icon">⏳</div>
+        <div class="ad-title">Остання реклама...</div>
+        <div class="ad-sub">Ще трохи — і рингтон твій!</div>
+        <div class="timer-circle" id="timer2">7</div>
+        <button class="btn btn-primary" id="btn2" disabled>
+          Далі →
+        </button>
+      </div>
+    </div>
+
+    <!-- READY -->
+    <div class="screen hidden" id="screenReady">
+      <div class="ad-card">
+        <div class="counter counter-success">✅ Готово!</div>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width: 100%"></div>
+        </div>
+        <div class="ad-icon">🎵</div>
+        <div class="ad-title" id="readyTitle">Дякуємо!</div>
+        <div class="ad-sub" id="readySub">
+          Натисни кнопку щоб отримати файл у чат
+        </div>
+        <button class="btn btn-green" id="getFileBtn">
+          🎵 Отримати рингтон у чат
+        </button>
+      </div>
+    </div>
+
+    <!-- ERROR -->
+    <div class="screen hidden" id="screenError">
+      <div class="ad-card">
+        <div class="counter counter-error">❌ Помилка</div>
+        <div style="font-size: 48px; margin-bottom: 12px;">⚠️</div>
+        <div class="ad-title">Реклама не запустилась</div>
+        <div class="ad-sub" id="errorText">
+          Не вдалося завантажити рекламний SDK або показати рекламу.
+        </div>
+        <button class="btn btn-secondary" id="retryBtn">
+          Спробувати ще раз
+        </button>
+        <div class="debug-box" id="debugBox"></div>
+      </div>
     </div>
   </div>
 
-  <!-- SCREEN: Реклама 2/2 -->
-  <div class="screen hidden" id="screen2">
-    <div class="ad-card">
-      <div class="counter">📣 Реклама 2 з 2</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:50%"></div></div>
-      <div class="ad-icon">⏳</div>
-      <div class="ad-title">Остання реклама...</div>
-      <div class="ad-sub">Ще трохи — і рингтон твій!</div>
-      <div class="timer-circle" id="timer2">7</div>
-      <button class="btn btn-primary" id="btn2" disabled onclick="goToReady()">
-        Далі →
-      </button>
-    </div>
-  </div>
+  <script>
+    const tg = window.Telegram?.WebApp || null;
 
-  <!-- SCREEN: Готово -->
-  <div class="screen hidden" id="screenReady">
-    <div class="ad-card">
-      <div class="counter" style="background:rgba(34,197,94,0.15);border-color:rgba(34,197,94,0.3);color:#22c55e;">✅ Готово!</div>
-      <div class="progress-bar"><div class="progress-fill" style="width:100%"></div></div>
-      <div class="ad-icon">🎵</div>
-      <div class="ad-title" id="readyTitle">Дякуємо!</div>
-      <div class="ad-sub" id="readySub">Натисни кнопку щоб отримати файл у чат</div>
-      <button class="btn btn-green" onclick="getFile()">
-        🎵 Отримати рингтон у чат
-      </button>
-    </div>
-  </div>
-
-  <!-- SCREEN: Error -->
-  <div class="screen hidden" id="screenError">
-    <div class="ad-card" style="text-align:center">
-      <div style="font-size:48px;margin-bottom:12px">❌</div>
-      <div class="ad-title">Помилка</div>
-      <div class="ad-sub" style="margin-top:8px">Надішли відео або посилання боту щоб отримати рингтон</div>
-    </div>
-  </div>
-
-</div>
-
-<script>
-const tg = window.Telegram?.WebApp;
-if (tg) {
-  tg.ready();
-  tg.expand();
-  tg.setHeaderColor('#0a0a0f');
-  tg.setBackgroundColor('#0a0a0f');
-}
-
-const urlParams = new URLSearchParams(location.search);
-const botJobId = urlParams.get('job_id');
-const lang = urlParams.get('lang') || 'uk';
-
-const T = {
-  uk: { doneTitle: 'Дякуємо!', doneSub: 'Натисни кнопку щоб отримати файл у чат' },
-  ru: { doneTitle: 'Спасибо!', doneSub: 'Нажми кнопку чтобы получить файл в чат' },
-  en: { doneTitle: 'Thank you!', doneSub: 'Tap the button to get the file in chat' },
-}[lang] || { doneTitle: 'Дякуємо!', doneSub: 'Натисни кнопку щоб отримати файл у чат' };
-
-function $(id) { return document.getElementById(id); }
-
-if (!botJobId) {
-  $('screen1').classList.add('hidden');
-  $('screenError').classList.remove('hidden');
-} else {
-  $('readyTitle').textContent = T.doneTitle;
-  $('readySub').textContent = T.doneSub;
-  startScreen1();
-}
-
-const inAppSettings = {
-  type: 'inApp',
-  inAppSettings: { frequency: 2, capping: 0.1, interval: 5, timeout: 3, everyPage: false }
-};
-
-function startTimer(timerId, btnId, seconds, callback) {
-  let left = seconds;
-  $(timerId).textContent = left;
-  const interval = setInterval(() => {
-    left--;
-    $(timerId).textContent = left;
-    if (left <= 0) {
-      clearInterval(interval);
-      $(timerId).textContent = '✓';
-      $(btnId).disabled = false;
-      if (callback) callback();
+    if (tg) {
+      try {
+        tg.ready();
+        tg.expand();
+        tg.setHeaderColor('#0a0a0f');
+        tg.setBackgroundColor('#0a0a0f');
+      } catch (e) {
+        console.error('Telegram WebApp init error:', e);
+      }
     }
-  }, 1000);
-}
 
-function startScreen1() {
-  // Запускаємо In-app рекламу
-  show_10863560(inAppSettings);
-  // Таймер 7 сек — потім кнопка активується
-  startTimer('timer1', 'btn1', 7);
-}
+    const urlParams = new URLSearchParams(window.location.search);
+    const botJobId = urlParams.get('job_id');
+    const lang = urlParams.get('lang') || 'uk';
 
-function goToAd2() {
-  $('screen1').classList.add('hidden');
-  $('screen2').classList.remove('hidden');
-  // Запускаємо другу In-app рекламу
-  show_10863560(inAppSettings);
-  // Таймер 7 сек — потім кнопка активується
-  startTimer('timer2', 'btn2', 7);
-}
+    const T = {
+      uk: {
+        doneTitle: 'Дякуємо!',
+        doneSub: 'Натисни кнопку щоб отримати файл у чат',
+        errorNoJob: 'Надішли відео або посилання боту, щоб отримати рингтон.',
+        errorSdk: 'Не вдалося завантажити рекламний SDK або показати рекламу.',
+        retry: 'Спробувати ще раз'
+      },
+      ru: {
+        doneTitle: 'Спасибо!',
+        doneSub: 'Нажми кнопку чтобы получить файл в чат',
+        errorNoJob: 'Отправь видео или ссылку боту, чтобы получить рингтон.',
+        errorSdk: 'Не удалось загрузить рекламный SDK или показать рекламу.',
+        retry: 'Попробовать снова'
+      },
+      en: {
+        doneTitle: 'Thank you!',
+        doneSub: 'Tap the button to get the file in chat',
+        errorNoJob: 'Send a video or link to the bot to get your ringtone.',
+        errorSdk: 'Failed to load the ad SDK or display the ad.',
+        retry: 'Try again'
+      }
+    }[lang] || {
+      doneTitle: 'Дякуємо!',
+      doneSub: 'Натисни кнопку щоб отримати файл у чат',
+      errorNoJob: 'Надішли відео або посилання боту, щоб отримати рингтон.',
+      errorSdk: 'Не вдалося завантажити рекламний SDK або показати рекламу.',
+      retry: 'Спробувати ще раз'
+    };
 
-function goToReady() {
-  $('screen2').classList.add('hidden');
-  $('screenReady').classList.remove('hidden');
-}
+    function $(id) {
+      return document.getElementById(id);
+    }
 
-function getFile() {
-  if (tg) {
-    tg.sendData(JSON.stringify({ action: 'send_file', job_id: botJobId }));
-    tg.close();
-  }
-}
-</script>
+    function showScreen(screenId) {
+      const screens = ['screen1', 'screen2', 'screenReady', 'screenError'];
+      for (const id of screens) {
+        $(id).classList.add('hidden');
+      }
+      $(screenId).classList.remove('hidden');
+    }
+
+    function setDebug(message) {
+      const box = $('debugBox');
+      box.textContent = message || '';
+    }
+
+    function setError(message, debugMessage = '') {
+      $('errorText').textContent = message;
+      setDebug(debugMessage);
+      showScreen('screenError');
+    }
+
+    $('readyTitle').textContent = T.doneTitle;
+    $('readySub').textContent = T.doneSub;
+    $('retryBtn').textContent = T.retry;
+
+    const inAppSettings = {
+      type: 'inApp',
+      inAppSettings: {
+        frequency: 2,
+        capping: 0.1,
+        interval: 5,
+        timeout: 3,
+        everyPage: false
+      }
+    };
+
+    let currentTimer = null;
+    let currentStep = 1;
+
+    function stopTimer() {
+      if (currentTimer) {
+        clearInterval(currentTimer);
+        currentTimer = null;
+      }
+    }
+
+    function startTimer(timerId, btnId, seconds) {
+      stopTimer();
+
+      let left = seconds;
+      $(timerId).textContent = left;
+      $(btnId).disabled = true;
+
+      currentTimer = setInterval(() => {
+        left -= 1;
+        $(timerId).textContent = left > 0 ? left : '✓';
+
+        if (left <= 0) {
+          clearInterval(currentTimer);
+          currentTimer = null;
+          $(btnId).disabled = false;
+        }
+      }, 1000);
+    }
+
+    function adSdkAvailable() {
+      return typeof window.show_10863560 === 'function';
+    }
+
+    function runAd() {
+      try {
+        if (!adSdkAvailable()) {
+          console.error('Ad SDK not loaded: show_10863560 is undefined');
+          return {
+            ok: false,
+            reason: 'show_10863560 is undefined'
+          };
+        }
+
+        const result = window.show_10863560(inAppSettings);
+        console.log('Ad start result:', result);
+
+        return {
+          ok: true,
+          result
+        };
+      } catch (error) {
+        console.error('Ad failed to start:', error);
+        return {
+          ok: false,
+          reason: error?.message || String(error)
+        };
+      }
+    }
+
+    function startFirstAdScreen() {
+      currentStep = 1;
+      showScreen('screen1');
+
+      const ad = runAd();
+      if (!ad.ok) {
+        setError(
+          T.errorSdk,
+          `Step: 1\nSDK: ${typeof window.show_10863560}\nReason: ${ad.reason}\nTelegram: ${!!tg}\njob_id: ${botJobId || 'missing'}`
+        );
+        return;
+      }
+
+      startTimer('timer1', 'btn1', 7);
+    }
+
+    function startSecondAdScreen() {
+      currentStep = 2;
+      showScreen('screen2');
+
+      const ad = runAd();
+      if (!ad.ok) {
+        setError(
+          T.errorSdk,
+          `Step: 2\nSDK: ${typeof window.show_10863560}\nReason: ${ad.reason}\nTelegram: ${!!tg}\njob_id: ${botJobId || 'missing'}`
+        );
+        return;
+      }
+
+      startTimer('timer2', 'btn2', 7);
+    }
+
+    function goToReady() {
+      stopTimer();
+      showScreen('screenReady');
+    }
+
+    function getFile() {
+      if (!botJobId) {
+        setError(T.errorNoJob, 'Missing job_id in query params');
+        return;
+      }
+
+      if (!tg) {
+        setError(
+          'Telegram WebApp недоступний',
+          'window.Telegram?.WebApp is not available'
+        );
+        return;
+      }
+
+      try {
+        tg.sendData(JSON.stringify({
+          action: 'send_file',
+          job_id: botJobId
+        }));
+        tg.close();
+      } catch (error) {
+        console.error('sendData failed:', error);
+        setError(
+          'Не вдалося надіслати файл у чат',
+          error?.message || String(error)
+        );
+      }
+    }
+
+    $('btn1').addEventListener('click', () => {
+      if ($('btn1').disabled) return;
+      startSecondAdScreen();
+    });
+
+    $('btn2').addEventListener('click', () => {
+      if ($('btn2').disabled) return;
+      goToReady();
+    });
+
+    $('getFileBtn').addEventListener('click', getFile);
+
+    $('retryBtn').addEventListener('click', () => {
+      if (!botJobId) {
+        setError(T.errorNoJob, 'Missing job_id in query params');
+        return;
+      }
+
+      if (currentStep === 2) {
+        startSecondAdScreen();
+      } else {
+        startFirstAdScreen();
+      }
+    });
+
+    window.addEventListener('error', (event) => {
+      console.error('Global JS error:', event.message, event.error);
+    });
+
+    window.addEventListener('unhandledrejection', (event) => {
+      console.error('Unhandled promise rejection:', event.reason);
+    });
+
+    console.log('Telegram WebApp available:', !!tg);
+    console.log('job_id:', botJobId);
+    console.log('lang:', lang);
+    console.log('show_10863560 type:', typeof window.show_10863560);
+
+    if (!botJobId) {
+      setError(T.errorNoJob, 'Missing job_id in URL');
+    } else {
+      startFirstAdScreen();
+    }
+  </script>
 </body>
 </html>
