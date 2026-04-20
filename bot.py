@@ -25,6 +25,8 @@ BOT_TOKEN  = os.getenv("BOT_TOKEN", "YOUR_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projects-6797bf46.vercel.app")
 API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
 ADMIN_ID   = 482920649
+ADSGRAM_TOKEN   = "1c9daa734e124fcc8f40309f58b55dcb"
+ADSGRAM_BLOCK   = "27752"
 
 # Статистика
 stats = {"success": 0, "errors": 0, "users": set()}
@@ -218,7 +220,39 @@ def make_filename(source: str, job_id: str, custom_name: str = None) -> str:
     short_id = job_id.replace("-", "")[:4]
     return f"{source}_{short_id}.m4r"
 
-async def poll_job(job_id: str, timeout: int = 120) -> bool:
+async def show_adsgram_ad(bot, chat_id: int, user_id: int, lang: str) -> bool:
+    """Показує рекламу від Adsgram в чаті. Повертає True якщо успішно."""
+    try:
+        async with httpx.AsyncClient(timeout=10) as client:
+            r = await client.get(
+                f"https://api.adsgram.ai/advbot",
+                params={
+                    "tgid": user_id,
+                    "blockid": ADSGRAM_BLOCK,
+                    "language": lang,
+                    "token": ADSGRAM_TOKEN,
+                }
+            )
+            if r.status_code != 200:
+                return False
+            data = r.json()
+            text_html = data.get("text_html", "")
+            button_name = data.get("button_name", "Перейти")
+            click_url = data.get("click_url", "")
+            if not click_url:
+                return False
+            await bot.send_message(
+                chat_id=chat_id,
+                text=text_html,
+                parse_mode="HTML",
+                reply_markup=InlineKeyboardMarkup([[
+                    InlineKeyboardButton(button_name, url=click_url)
+                ]])
+            )
+            return True
+    except Exception as e:
+        logger.error(f"adsgram error: {e}")
+        return False
     async with httpx.AsyncClient() as client:
         for _ in range(timeout // 3):
             try:
@@ -303,6 +337,11 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
             ctx.user_data[f"source_{job_id}"] = source
             ctx.user_data[f"name_{job_id}"] = custom_name
             stats["success"] += 1
+
+        # Показуємо рекламу Adsgram перед кнопкою міні-апп
+        user_id = ctx.user_data.get("user_id") if ctx else None
+        if user_id:
+            await show_adsgram_ad(bot, chat_id, user_id, lang)
 
         await bot.send_message(
             chat_id=chat_id,
@@ -422,6 +461,7 @@ async def url_received(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     ctx.user_data["url"] = text
     ctx.user_data["source"] = get_source_from_url(text)
+    ctx.user_data["user_id"] = update.effective_user.id
     return await ask_moment(update, ctx)
 
 async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -434,6 +474,7 @@ async def on_video(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     ctx.user_data["file_id"] = file.file_id
     ctx.user_data["suffix"] = suffix
     ctx.user_data["source"] = "file"
+    ctx.user_data["user_id"] = update.effective_user.id
     return await ask_moment(update, ctx)
 
 async def cmd_start(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
@@ -513,6 +554,7 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ctx.user_data["file_id"] = voice.file_id
         ctx.user_data["suffix"] = ".ogg"
         ctx.user_data["source"] = "voice"
+        ctx.user_data["user_id"] = update.effective_user.id
         return await ask_moment(update, ctx)
 
     # Якщо коротше 30 сек — одразу конвертуємо
@@ -579,7 +621,8 @@ def main():
     app.add_handler(CallbackQueryHandler(on_callback))
 
     logger.info("✅ ConvertRing bot running...")
-    asyncio.get_event_loop().create_task(schedule_daily_stats(app))
+    loop = asyncio.get_event_loop()
+    loop.create_task(schedule_daily_stats(app))
     app.run_polling(drop_pending_updates=True, allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
