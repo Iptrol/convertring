@@ -268,19 +268,6 @@ async def show_adsgram_ad(bot, chat_id: int, user_id: int, lang: str) -> bool:
     except Exception as e:
         logger.error(f"adsgram error: {e}")
         return False
-    async with httpx.AsyncClient() as client:
-        for _ in range(timeout // 3):
-            try:
-                r = await client.get(f"{API_BASE}/status/{job_id}", timeout=10)
-                d = r.json()
-                if d["status"] == "done":
-                    return True
-                if d["status"] == "error":
-                    return False
-            except:
-                pass
-            await asyncio.sleep(3)
-    return False
 
 async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str = "file", custom_name: str = None):
     t = TEXTS[lang]
@@ -574,6 +561,7 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
 
     # Якщо коротше 30 сек — одразу конвертуємо
     t = TEXTS[lang]
+    ctx.user_data["user_id"] = update.effective_user.id
     msg = await update.message.reply_text(t["converting"])
     try:
         tg_file = await ctx.bot.get_file(voice.file_id)
@@ -593,6 +581,8 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
+            # Показуємо Adsgram перед міні-апп
+            await show_adsgram_ad(ctx.bot, update.effective_chat.id, update.effective_user.id, lang)
             await update.message.reply_text("👇", reply_markup=app_keyboard(lang, job_id))
         else:
             await msg.edit_text(t["error"])
