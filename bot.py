@@ -70,6 +70,8 @@ TEXTS = {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nНадішли будь-що, зроблю з цього рингтон для твого дзвінку:\n • Відео з галереї\n • TikTok / Instagram / YouTube Music — лінки тільки з застосунків, не з браузерів\n • Голосове повідомлення\n\nЯ:\n • ✂️ Виріжу потрібний момент\n • 💾 Збережу з твоєю назвою\n\nЗа пару хвилин у тебе унікальний рингтон якого ні в кого немає!",
         "converting": "⏳ Отримую та конвертую...",
         "done": "🎵 Рингтон готовий! Зараз надішлю файл...",
+        "ad_warning": "Зараз надійде кілька рекламних повідомлень, а після них — твій рингтон 👇",
+        "ad_warning": "📣 Нижче буде пару реклам — після них файл з рингтоном 👇",
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
         "unsupported": "❌ Надішли відео, голосове або посилання на TikTok/Instagram/YouTube Music",
@@ -95,6 +97,7 @@ TEXTS = {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонов для iPhone\n\nОтправь что угодно, сделаю из этого рингтон для твоего звонка:\n • Видео из галереи\n • TikTok / Instagram / YouTube Music — ссылки только из приложений, не из браузера\n • Голосовое сообщение\n\nЯ:\n • ✂️ Вырежу нужный момент\n • 💾 Сохраню с твоим названием\n\nЗа пару минут у тебя уникальный рингтон которого ни у кого нет!",
         "converting": "⏳ Загружаю и конвертирую...",
         "done": "🎵 Рингтон готов! Сейчас отправлю файл...",
+        "ad_warning": "Сейчас придёт несколько рекламных сообщений, а после них — твой рингтон 👇",
         "get_btn": "🎵 Получить рингтон",
         "error": "❌ Не удалось обработать. Попробуй другое видео или ссылку.",
         "unsupported": "❌ Отправь видео, голосовое или ссылку на TikTok/Instagram/YouTube Music",
@@ -120,6 +123,7 @@ TEXTS = {
         "welcome": "🎶 *ConvertRing* — iPhone ringtone converter\n\nSend me anything, I'll turn it into a ringtone for your calls:\n • Video from your gallery\n • TikTok / Instagram / YouTube Music — links from apps only, not from browser\n • Voice message\n\nI will:\n • ✂️ Cut the right moment\n • 💾 Save with your name\n\nIn a couple of minutes you'll have a unique ringtone nobody else has!",
         "converting": "⏳ Downloading and converting...",
         "done": "🎵 Ringtone is ready! Sending your file...",
+        "ad_warning": "You'll receive a few ad messages, and after them — your ringtone 👇",
         "get_btn": "🎵 Get ringtone",
         "error": "❌ Failed to process. Try another video or link.",
         "unsupported": "❌ Send a video, voice message or TikTok/Instagram/YouTube Music link",
@@ -343,6 +347,7 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
         # Показуємо 3 реклами Adsgram підряд
         user_id = ctx.user_data.get("user_id") if ctx else None
         if user_id:
+            await bot.send_message(chat_id=chat_id, text=TEXTS[lang]["ad_warning"])
             await show_adsgram_ad(bot, chat_id, user_id, lang)
             await asyncio.sleep(1)
             await show_adsgram_ad(bot, chat_id, user_id, lang)
@@ -584,6 +589,7 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ok = await poll_job(job_id)
         if ok:
             await msg.edit_text(t["done"])
+            await update.message.reply_text(t["ad_warning"])
             await show_adsgram_ad(ctx.bot, update.effective_chat.id, update.effective_user.id, lang)
             await asyncio.sleep(1)
             await show_adsgram_ad(ctx.bot, update.effective_chat.id, update.effective_user.id, lang)
