@@ -345,15 +345,16 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
             stats["success"] += 1
 
         # Показуємо 3 реклами Adsgram підряд
-        user_id = ctx.user_data.get("user_id") if ctx else None
-        if user_id:
-            await bot.send_message(chat_id=chat_id, text=TEXTS[lang]["ad_warning"])
-            await show_adsgram_ad(bot, chat_id, user_id, lang)
-            await asyncio.sleep(1)
-            await show_adsgram_ad(bot, chat_id, user_id, lang)
-            await asyncio.sleep(1)
-            await show_adsgram_ad(bot, chat_id, user_id, lang)
-            await asyncio.sleep(1)
+        # В приватному боті chat_id = user_id
+        user_id = ctx.user_data.get("user_id") if ctx else chat_id
+        adsgram_user_id = user_id or chat_id
+        await bot.send_message(chat_id=chat_id, text=TEXTS[lang]["ad_warning"])
+        await show_adsgram_ad(bot, chat_id, adsgram_user_id, lang)
+        await asyncio.sleep(1)
+        await show_adsgram_ad(bot, chat_id, adsgram_user_id, lang)
+        await asyncio.sleep(1)
+        await show_adsgram_ad(bot, chat_id, adsgram_user_id, lang)
+        await asyncio.sleep(1)
 
         # Надсилаємо файл одразу без міні-апп
         custom_name_val = ctx.user_data.get(f"name_{job_id}") if ctx else None
