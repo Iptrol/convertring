@@ -264,6 +264,7 @@ async def show_adsgram_ad(bot, chat_id: int, user_id: int, lang: str) -> bool:
                 chat_id=chat_id,
                 text=text_html,
                 parse_mode="HTML",
+                protect_content=True,
                 reply_markup=InlineKeyboardMarkup([[
                     InlineKeyboardButton(button_name, url=click_url)
                 ]])
