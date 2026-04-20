@@ -220,6 +220,21 @@ def make_filename(source: str, job_id: str, custom_name: str = None) -> str:
     short_id = job_id.replace("-", "")[:4]
     return f"{source}_{short_id}.m4r"
 
+async def poll_job(job_id: str, timeout: int = 120) -> bool:
+    async with httpx.AsyncClient() as client:
+        for _ in range(timeout // 3):
+            try:
+                r = await client.get(f"{API_BASE}/status/{job_id}", timeout=10)
+                d = r.json()
+                if d["status"] == "done":
+                    return True
+                if d["status"] == "error":
+                    return False
+            except:
+                pass
+            await asyncio.sleep(3)
+    return False
+
 async def show_adsgram_ad(bot, chat_id: int, user_id: int, lang: str) -> bool:
     """Показує рекламу від Adsgram в чаті. Повертає True якщо успішно."""
     try:
