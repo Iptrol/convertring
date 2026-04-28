@@ -77,6 +77,7 @@ async def download_url(url: str, out_dir: str) -> Optional[str]:
         "fragment_retries": 10,
         "socket_timeout": 30,
         "http_chunk_size": 1048576,
+        "extractor_args": {"youtube": {"player_client": ["web"]}},
     }
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
