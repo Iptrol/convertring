@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 BOT_TOKEN  = os.getenv("BOT_TOKEN", "YOUR_TOKEN")
 WEBAPP_URL = os.getenv("WEBAPP_URL", "https://convertring-fkr7w16g2-lenas-projects-6797bf46.vercel.app")
-API_BASE   = os.getenv("API_BASE", "https://convertring-production.up.railway.app")
+API_BASE   = os.getenv("API_BASE", "http://localhost:8000")
 ADMIN_ID   = 482920649
 ADSGRAM_TOKEN   = "1c9daa734e124fcc8f40309f58b55dcb"
 ADSGRAM_BLOCK   = "27752"
@@ -70,7 +70,6 @@ TEXTS = {
         "welcome": "🎶 *ConvertRing* — конвертер рингтонів для iPhone\n\nНадішли будь-що, зроблю з цього рингтон для твого дзвінку:\n • Відео з галереї\n • TikTok / Instagram / YouTube Music — лінки тільки з застосунків, не з браузерів\n • Голосове повідомлення\n\nЯ:\n • ✂️ Виріжу потрібний момент\n • 💾 Збережу з твоєю назвою\n\nЗа пару хвилин у тебе унікальний рингтон якого ні в кого немає!",
         "converting": "⏳ Отримую та конвертую...",
         "done": "🎵 Рингтон готовий! Зараз надішлю файл...",
-        "ad_warning": "Зараз надійде кілька рекламних повідомлень, а після них — твій рингтон 👇",
         "ad_warning": "📣 Нижче буде пару реклам — після них файл з рингтоном 👇",
         "get_btn": "🎵 Отримати рингтон",
         "error": "❌ Не вдалося обробити. Спробуй інше відео або посилання.",
@@ -240,7 +239,6 @@ async def poll_job(job_id: str, timeout: int = 120) -> bool:
     return False
 
 async def show_adsgram_ad(bot, chat_id: int, user_id: int, lang: str) -> bool:
-    """Показує рекламу від Adsgram в чаті. Повертає True якщо успішно."""
     try:
         async with httpx.AsyncClient(timeout=10) as client:
             r = await client.get(
@@ -290,7 +288,6 @@ async def send_ringtone(ctx, chat_id: int, job_id: str, lang: str, source: str =
                         InlineKeyboardButton(t["how_btn"], callback_data="nav_how")
                     ]])
                 )
-                # Прибираємо ReplyKeyboard окремим повідомленням
                 await ctx.bot.send_message(
                     chat_id=chat_id,
                     text=t["after_ringtone"],
@@ -345,8 +342,6 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
             ctx.user_data[f"name_{job_id}"] = custom_name
             stats["success"] += 1
 
-        # Показуємо 3 реклами Adsgram підряд
-        # В приватному боті chat_id = user_id
         user_id = ctx.user_data.get("user_id") if ctx else chat_id
         adsgram_user_id = user_id or chat_id
         await bot.send_message(chat_id=chat_id, text=TEXTS[lang]["ad_warning"])
@@ -357,7 +352,6 @@ async def do_convert(bot, chat_id: int, lang: str, user_data: dict, ctx=None):
         await show_adsgram_ad(bot, chat_id, adsgram_user_id, lang)
         await asyncio.sleep(1)
 
-        # Надсилаємо файл одразу без міні-апп
         custom_name_val = ctx.user_data.get(f"name_{job_id}") if ctx else None
         await send_ringtone(ctx, chat_id, job_id, lang, source, custom_name_val)
         return True, job_id
@@ -428,7 +422,6 @@ async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     text = (update.message.text or "").strip()
-    # Якщо юзер скидає новий лінк — починаємо заново
     if is_url(text):
         ctx.user_data.clear()
         ctx.user_data["url"] = text
@@ -444,11 +437,9 @@ async def got_name_input(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
     return ConversationHandler.END
 
 async def unexpected_text_in_moment(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Юзер пише текст замість кнопки на кроці вибору моменту"""
     text = (update.message.text or "").strip()
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
-    # Якщо це новий лінк — починаємо заново
     if is_url(text):
         ctx.user_data.clear()
         ctx.user_data["url"] = text
@@ -458,7 +449,6 @@ async def unexpected_text_in_moment(update: Update, ctx: ContextTypes.DEFAULT_TY
     return ASK_MOMENT
 
 async def unexpected_text_in_name(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
-    """Юзер пише текст замість кнопки на кроці назви"""
     lang = get_lang(update.effective_user.id)
     t = TEXTS[lang]
     await update.message.reply_text(t["press_button"])
@@ -561,7 +551,6 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         return
     lang = get_lang(update.effective_user.id)
 
-    # Якщо голосове довше 30 сек — питаємо момент і назву як для відео
     if voice.duration and voice.duration > 30:
         ctx.user_data["file_id"] = voice.file_id
         ctx.user_data["suffix"] = ".ogg"
@@ -569,7 +558,6 @@ async def on_voice(update: Update, ctx: ContextTypes.DEFAULT_TYPE):
         ctx.user_data["user_id"] = update.effective_user.id
         return await ask_moment(update, ctx)
 
-    # Якщо коротше 30 сек — одразу конвертуємо
     t = TEXTS[lang]
     ctx.user_data["user_id"] = update.effective_user.id
     msg = await update.message.reply_text(t["converting"])
