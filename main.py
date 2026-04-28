@@ -73,6 +73,10 @@ async def download_url(url: str, out_dir: str) -> Optional[str]:
         "quiet": True,
         "no_warnings": True,
         "max_filesize": MAX_FILE_MB * 1024 * 1024,
+        "retries": 10,
+        "fragment_retries": 10,
+        "socket_timeout": 30,
+        "http_chunk_size": 1048576,
     }
     try:
         with yt_dlp.YoutubeDL(opts) as ydl:
