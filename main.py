@@ -130,6 +130,10 @@ async def process_url_job(job_id: str, url: str, start: int, end: int):
 def root():
     return {"service": "ConvertRing API", "status": "ok"}
 
+@app.get("/ping")
+def ping():
+    return {"status": "alive"}
+
 @app.post("/convert/file")
 async def convert_file(
     background_tasks: BackgroundTasks,
